@@ -9,7 +9,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>MandalApp — Cosmos Estelar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=Cormorant+Garamond:ital@1&display=swap" rel="stylesheet">
@@ -1262,7 +1262,46 @@ canvas.addEventListener('wheel', e=>{
   state.zoom = Math.min(6, Math.max(0.15, state.zoom*factor));
   redrawTrace();
 }, {passive:false});
+/* ---- SOPORTE TÁCTIL: pan 1 dedo, pinch zoom 2 dedos ---- */
+let touchStartX=0, touchStartY=0, touchPanStartX=0, touchPanStartY=0;
+let pinchStartDist=0, pinchStartZoom=1;
 
+function touchDist(t){
+  const dx = t[0].clientX - t[1].clientX;
+  const dy = t[0].clientY - t[1].clientY;
+  return Math.hypot(dx, dy);
+}
+
+canvas.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  if(e.touches.length === 1){
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchPanStartX = state.panX;
+    touchPanStartY = state.panY;
+  } else if(e.touches.length === 2){
+    pinchStartDist = touchDist(e.touches);
+    pinchStartZoom = state.zoom;
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchmove', e=>{
+  e.preventDefault();
+  if(e.touches.length === 1){
+    state.panX = touchPanStartX + (e.touches[0].clientX - touchStartX);
+    state.panY = touchPanStartY + (e.touches[0].clientY - touchStartY);
+    redrawTrace();
+  } else if(e.touches.length === 2){
+    const newDist = touchDist(e.touches);
+    const factor = newDist / pinchStartDist;
+    state.zoom = Math.min(6, Math.max(0.15, pinchStartZoom * factor));
+    redrawTrace();
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchend', ()=>{
+  pinchStartDist = 0;
+}, {passive:false});
 /* ---- PORTADA CÓSMICA DINÁMICA ----
    Config exclusiva de portada: más brazos que el máximo del editor (9),
    mismo tono (cian, el color de marca de la app) en degradado de brillo —
