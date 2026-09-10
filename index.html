@@ -1,3 +1,4 @@
+
 <!--
   MandalApp — Speed3Dental
   © 2026 Yoshio Carballo. Todos los derechos reservados.
@@ -589,10 +590,43 @@ const GALLERY_KEY = 'mandalapp_gallery_v1';
 const RADIUS_MIN = 0.3, RADIUS_MAX = 8, SPEED_MAX = 15, SPEED_MIN = 0.2;
 const GLITTER_TAIL_LEN = 40; // largo corto de la estela brillantina (en puntos, no en vueltas)
 
+/* ---- TRAZADOR AVANZADO: punteado, color dinámico y grosor variable ----
+   Estas 3 opciones son independientes y combinables por brazo. Para no
+   generar un segmento nuevo (y por lo tanto una llamada extra a stroke())
+   en CADA punto — carísimo en esta RAM — el color dinámico y el grosor
+   variable solo se recalculan cada ADV_UPDATE_EVERY puntos. El punteado no
+   necesita throttle porque no cambia con el tiempo. */
+const ADV_UPDATE_EVERY = 6; // cada cuántos puntos se recalcula color/grosor
+const HUE_STEP = 5;         // grados que avanza el color dinámico por recálculo
+const WIDTH_FREQ = 3;       // "velocidad" del pulso de grosor, relativa al giro propio del brazo
+
+function hexToHue(hex){
+  hex = (hex || '#ffffff').replace('#','');
+  if(hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  const r = parseInt(hex.substr(0,2),16)/255;
+  const g = parseInt(hex.substr(2,2),16)/255;
+  const b = parseInt(hex.substr(4,2),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h = 0;
+  const d = max-min;
+  if(d !== 0){
+    switch(max){
+      case r: h = ((g-b)/d) % 6; break;
+      case g: h = (b-r)/d + 2; break;
+      case b: h = (r-g)/d + 4; break;
+    }
+    h *= 60;
+    if(h<0) h+=360;
+  }
+  return h;
+}
+
 function baseLink(overrides){
   return Object.assign({
     radius: 2, speed: 1, dir: 1,
     traceEnabled: true, traceColor: '#ff3fb4',
+    dashed: false, colorDinamico: false, grosorVariable: false,
+    _hue: null, _advCounter: 0, _lastAppearance: null,
     _segments: [], _glitterTail: []
   }, overrides);
 }
@@ -848,16 +882,20 @@ function getBlur(){
 
 // Dibuja un array de puntos {x,y} en espacio "mundo" (ya escalado a pixeles,
 // sin pan/zoom/rotación — eso lo pone el transform activo del contexto).
-function strokePath(points, color, blur){
+// width y dash son opcionales: si no se pasan, se usa el grosor global y
+// línea sólida (comportamiento igual al de antes del trazador avanzado).
+function strokePath(points, color, blur, width, dash){
   if(points.length < 2) return;
   ctx.strokeStyle = color;
-  ctx.lineWidth = state.grosor;
+  ctx.lineWidth = (width != null) ? width : state.grosor;
+  ctx.setLineDash(dash || []);
   if(blur > 0){ ctx.shadowColor = color; ctx.shadowBlur = blur; }
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
   for(let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
   ctx.stroke();
   if(blur > 0) ctx.shadowBlur = 0;
+  ctx.setLineDash([]); // reset — para no afectar estrellas, eje, u otros trazos
 }
 
 // Estela brillantina: en vez de una línea continua, puntitos sueltos que
@@ -914,7 +952,7 @@ function redrawTrace(){
     for(const seg of link._segments){
       if(seg.pts.length < 2) continue;
       const pts = seg.pts.map(p => ({x:p.x*s, y:p.y*s}));
-      strokePath(pts, seg.color, blur);
+      strokePath(pts, seg.color, blur, seg.width, seg.dash);
     }
     if(state.settings.glitter && link._glitterTail && link._glitterTail.length){
       drawGlitterTail(link._glitterTail, link.traceColor, s);
@@ -978,7 +1016,13 @@ function drawRig(puntos){
 function resetTrace(){
   state.tip = null;
   state.t = 0;
-  state.links.forEach(l => { l._segments = []; l._glitterTail = []; });
+  state.links.forEach(l => {
+    l._segments = [];
+    l._glitterTail = [];
+    l._advCounter = 0;
+    l._lastAppearance = null;
+    l._hue = null; // el color dinámico vuelve a partir del color manual elegido
+  });
   redrawTrace();
 }
 
@@ -1017,7 +1061,21 @@ function renderLinks(){
           <input type="checkbox" class="in-trace-en" data-i="${i}" ${link.traceEnabled?'checked':''}>
           Estela propia
         </label>
-        <input type="color" class="in-trace-col" data-i="${i}" value="${link.traceColor}">
+        <input type="color" class="in-trace-col" data-i="${i}" value="${link.traceColor}" ${link.colorDinamico?'disabled':''}>
+      </div>
+      <div class="row-flex trace-option" style="flex-wrap:wrap;gap:10px 14px;">
+        <label class="trace-label">
+          <input type="checkbox" class="in-dashed" data-i="${i}" ${link.dashed?'checked':''}>
+          Punteado
+        </label>
+        <label class="trace-label">
+          <input type="checkbox" class="in-color-dinamico" data-i="${i}" ${link.colorDinamico?'checked':''}>
+          Color dinámico
+        </label>
+        <label class="trace-label">
+          <input type="checkbox" class="in-grosor-variable" data-i="${i}" ${link.grosorVariable?'checked':''}>
+          Grosor variable
+        </label>
       </div>
       <div class="trace-hint" style="font-size:10px;color:var(--ink-dim);">
         ${link.traceEnabled ? 'Dibujando' : 'En pausa — el trazo ya hecho se queda como está'}
@@ -1069,6 +1127,34 @@ function renderLinks(){
       const i = +e.target.dataset.i;
       state.links[i].traceColor = e.target.value;
       redrawTrace();
+    });
+  });
+  list.querySelectorAll('.in-dashed').forEach(el=>{
+    el.addEventListener('change', e=>{
+      const i = +e.target.dataset.i;
+      state.links[i].dashed = e.target.checked;
+      state.links[i]._lastAppearance = null; // fuerza recalcular en el próximo punto
+      markCustom();
+    });
+  });
+  list.querySelectorAll('.in-color-dinamico').forEach(el=>{
+    el.addEventListener('change', e=>{
+      const i = +e.target.dataset.i;
+      const link = state.links[i];
+      link.colorDinamico = e.target.checked;
+      if(link.colorDinamico && (link._hue === null || link._hue === undefined)){
+        link._hue = hexToHue(link.traceColor);
+      }
+      link._lastAppearance = null;
+      markCustom(); renderLinks();
+    });
+  });
+  list.querySelectorAll('.in-grosor-variable').forEach(el=>{
+    el.addEventListener('change', e=>{
+      const i = +e.target.dataset.i;
+      state.links[i].grosorVariable = e.target.checked;
+      state.links[i]._lastAppearance = null;
+      markCustom();
     });
   });
 }
@@ -1444,17 +1530,58 @@ function drawSplashPreview(){
 const DT = 0.01;
 const PATH_CAP = 5000, PATH_TRIM_TO = 3500; // recorte por lotes en vez de uno por cuadro
 
-// Cada brazo guarda su trazo como una lista de SEGMENTOS ({color, pts}) en vez
-// de un solo arreglo de puntos. Así, si cambias el color de un brazo a mitad
-// del dibujo, el tramo ya dibujado conserva su color original — solo lo nuevo
-// usa el color nuevo. Apagar "Estela propia" simplemente deja de generar
-// puntos nuevos (ver tick); el render de arriba siempre pinta lo que ya existe.
-function pushSegmentPoint(link, pt){
+// Calcula la "apariencia" (color, grosor, punteado) que le toca a un brazo
+// en este instante. El color dinámico y el grosor variable se recalculan
+// cada ADV_UPDATE_EVERY puntos (throttle) para no generar un stroke() nuevo
+// en cada punto — el punteado no necesita throttle porque no cambia con t.
+function computeAppearance(link, t){
+  let color = link.traceColor;
+  if(link.colorDinamico){
+    if(link._hue === null || link._hue === undefined) link._hue = hexToHue(link.traceColor);
+    color = `hsl(${Math.round(link._hue)},85%,60%)`;
+  }
+
+  let width = state.grosor;
+  if(link.grosorVariable){
+    const theta = link.dir * link.speed * t;
+    const pulso = 0.4 + 0.6 * Math.abs(Math.sin(theta * WIDTH_FREQ));
+    width = +(state.grosor * pulso).toFixed(2);
+  }
+
+  const dash = link.dashed ? [Math.max(2, width*3), Math.max(2, width*2.4)] : null;
+  return { color, width, dash };
+}
+
+// Cada brazo guarda su trazo como una lista de SEGMENTOS ({color, width,
+// dash, pts}) en vez de un solo arreglo de puntos. Así, si cambia la
+// apariencia de un brazo a mitad del dibujo (color, grosor o punteado), el
+// tramo ya dibujado conserva su apariencia original — solo lo nuevo cambia.
+// Apagar "Estela propia" simplemente deja de generar puntos nuevos (ver
+// tick); el render de arriba siempre pinta lo que ya existe.
+function pushSegmentPoint(link, pt, t){
+  link._advCounter = (link._advCounter || 0) + 1;
+  const throttle = (link.colorDinamico || link.grosorVariable) ? ADV_UPDATE_EVERY : 1;
+  const shouldRecompute = !link._lastAppearance || (link._advCounter % throttle === 0);
+
+  let appearance;
+  if(shouldRecompute){
+    appearance = computeAppearance(link, t);
+    if(link.colorDinamico) link._hue = (link._hue + HUE_STEP) % 360; // avanza el tono solo al recalcular
+    link._lastAppearance = appearance;
+  } else {
+    appearance = link._lastAppearance;
+  }
+
   const segs = link._segments;
   let last = segs[segs.length - 1];
-  if(!last || last.color !== link.traceColor){
+  const dashKey = appearance.dash ? appearance.dash.join(',') : '';
+  const lastDashKey = (last && last.dash) ? last.dash.join(',') : '';
+  const sameAppearance = last && last.color === appearance.color &&
+    last.width === appearance.width && lastDashKey === dashKey;
+
+  if(!sameAppearance){
     const startPt = (last && last.pts.length) ? last.pts[last.pts.length - 1] : pt;
-    last = { color: link.traceColor, pts: [startPt] };
+    last = { color: appearance.color, width: appearance.width, dash: appearance.dash, pts: [startPt] };
     segs.push(last);
   }
   last.pts.push(pt);
@@ -1516,7 +1643,7 @@ function tick(){
       const link = state.links[i-1];
       if(link.traceEnabled){
         if(!link._segments) link._segments = [];
-        pushSegmentPoint(link, puntos[i]);
+        pushSegmentPoint(link, puntos[i], state.t);
         trimSegments(link);
         if(state.settings.glitter){
           if(!link._glitterTail) link._glitterTail = [];
