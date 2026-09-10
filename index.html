@@ -1209,6 +1209,10 @@ document.getElementById('btn-gallery-save').addEventListener('click', ()=>{
 /* ---- CONTACTO: GitHub Issues como opción principal, correo como respaldo ---- */
 if(CONTACT_EMAIL) document.getElementById('btn-contact-email').style.display = '';
 
+  document.getElementById('btn-open-whatsapp').addEventListener('click', () => {
+  window.open('https://wa.me/525649268628?text=Hola, encontré MandalApp y me gustaría contactarte', '_blank');
+});
+
 document.getElementById('btn-contact-github').addEventListener('click', ()=>{
   const asunto = document.getElementById('contact-name').value.trim() || 'Mensaje desde MandalApp';
   const mensaje = document.getElementById('contact-message').value.trim();
