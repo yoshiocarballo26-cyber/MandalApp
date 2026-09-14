@@ -1392,6 +1392,10 @@ if(CONTACT_EMAIL) document.getElementById('btn-contact-email').style.display = '
 document.getElementById('btn-open-whatsapp').addEventListener('click', () => {
   window.open('https://wa.me/525649268628?text=Hola, encontré MandalApp y me gustaría contactarte', '_blank');
 });
+  
+  document.getElementById('btn-open-discussions').addEventListener('click', () => {
+  window.open('https://github.com/yoshiocarballo26-cyber/MandalApp/discussions', '_blank');
+});
 
 document.getElementById('btn-contact-github').addEventListener('click', ()=>{
   const asunto = document.getElementById('contact-name').value.trim() || 'Mensaje desde MandalApp';
