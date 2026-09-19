@@ -1,0 +1,1730 @@
+<!--
+  MandalApp — YC
+  © 2026 Yoshio Carballo. Todos los derechos reservados.
+  Este código se distribuye en este repositorio bajo los términos indicados
+  en el archivo LICENSE del repositorio. Queda prohibida su redistribución
+  o reutilización comercial sin autorización expresa del autor.
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MandalApp — Cosmos Estelar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=Cormorant+Garamond:ital@1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05050a;
+    --panel:#0d0d16;
+    --line:#1a1a2e;
+    --ink:#e8e6f0;
+    --ink-dim:#8a879c;
+    --cyan:#00f0d6;
+    --magenta:#ff3fb4;
+    --gold:#d9b45c;
+    --purple:#7c5cff;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:'Space Grotesk',sans-serif;overflow:hidden;}
+
+  #splash-screen{
+    position:absolute;top:0;left:0;width:100vw;height:100vh;
+    background:radial-gradient(circle at 50% 50%, rgba(124,92,255,0.2) 0%, rgba(5,5,10,0.98) 70%), var(--bg);
+    z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:20px;transition:opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #splash-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+  
+  .splash-container{
+    width:100%;max-width:700px;background:rgba(13,13,22,0.85);
+    border:1px solid var(--line);border-radius:8px;padding:35px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.9), 0 0 40px rgba(124,92,255,0.15);
+    display:flex;flex-direction:column;align-items:center;text-align:center;
+    backdrop-filter:blur(12px);position:relative;overflow:hidden;
+  }
+  
+  .splash-preview-canvas{
+    width:200px;height:200px;border-radius:50%;border:2px solid var(--cyan);
+    box-shadow:0 0 25px rgba(0,240,214,0.4);margin-bottom:20px;background:#030307;
+  }
+
+  .splash-title{font-size:34px;font-weight:700;letter-spacing:0.02em;margin:0 0 6px;}
+  .splash-title em{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-weight:400;}
+  .splash-subtitle{color:var(--ink-dim);font-size:13.5px;line-height:1.6;margin-bottom:25px;max-width:480px;}
+
+  .splash-menu{display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px;}
+  .splash-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.1em;
+    text-transform:uppercase;background:transparent;border:1px solid var(--line);
+    color:var(--ink);padding:14px;border-radius:4px;cursor:pointer;transition:all .2s;
+  }
+  .splash-btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,240,214,0.05);}
+  .splash-btn.primary{border-color:var(--magenta);color:var(--magenta);background:rgba(255,63,180,0.12);font-weight:700;}
+  .splash-btn.primary:hover{background:rgba(255,63,180,0.25);box-shadow:0 0 20px rgba(255,63,180,0.5);}
+  .splash-donate{margin-top:22px;padding-top:16px;border-top:1px dashed var(--line);max-width:420px;}
+  .splash-donate p{margin:0;color:var(--ink-dim);font-size:11px;line-height:1.6;}
+
+  .modal-overlay{
+    position:absolute;top:0;left:0;width:100vw;height:100vh;
+    background:rgba(0,0,0,0.8);z-index:200;display:flex;align-items:center;justify-content:center;
+    padding:20px;opacity:0;visibility:hidden;transition:opacity .3s, visibility .3s;
+    backdrop-filter:blur(5px);
+  }
+  .modal-overlay.active{opacity:1;visibility:visible;}
+  .modal-box{
+    width:100%;max-width:540px;background:var(--panel);border:1px solid var(--line);
+    border-radius:6px;padding:30px;display:flex;flex-direction:column;gap:20px;
+    max-height:85vh;overflow-y:auto;box-shadow:0 15px 40px rgba(0,0,0,0.9);
+  }
+  .modal-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:12px;}
+  .modal-header h2{margin:0;font-size:18px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.05em;color:var(--cyan);}
+  .modal-close{background:none;border:none;color:var(--ink-dim);font-size:20px;cursor:pointer;}
+  .modal-close:hover{color:var(--magenta);}
+
+  .setting-group{display:flex;flex-direction:column;gap:8px;}
+  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .setting-label{font-size:13px;color:var(--ink);}
+  .setting-desc{font-size:11px;color:var(--ink-dim);margin-top:2px;}
+  
+  select.setting-select{
+    background:var(--bg);border:1px solid var(--line);color:var(--ink);
+    font-family:'Space Grotesk',sans-serif;font-size:12px;padding:8px 12px;border-radius:3px;outline:none;
+  }
+  select.setting-select:focus{border-color:var(--cyan);}
+
+  .toggle-switch{position:relative;display:inline-block;width:44px;height:24px;}
+  .toggle-switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--line);transition:.3s;border-radius:24px;}
+  .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background-color:var(--ink);transition:.3s;border-radius:50%;}
+  input:checked + .slider{background-color:var(--cyan);}
+  input:checked + .slider:before{transform:translateX(20px);background-color:var(--bg);}
+
+  .legal-content{font-size:12.5px;line-height:1.7;color:var(--ink-dim);display:flex;flex-direction:column;gap:12px;}
+  .legal-content h3{color:var(--ink);font-size:14px;margin:10px 0 4px;}
+
+  #app{display:grid;grid-template-columns:380px 1fr;height:100vh;}
+
+  #panel{
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:26px 20px;
+    overflow-y:auto;
+    display:flex;flex-direction:column;gap:20px;
+  }
+  header h1{font-size:22px;font-weight:700;letter-spacing:0.02em;margin:0;}
+  header h1 em{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-weight:400;}
+  header p{margin:6px 0 0;color:var(--ink-dim);font-size:12px;line-height:1.5;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--ink-dim);margin-bottom:10px;display:flex;
+    justify-content:space-between;align-items:center;
+  }
+  .eyebrow-toggle{
+    background:transparent;border:1px solid var(--line);color:var(--ink-dim);
+    border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    padding:4px 9px;cursor:pointer;transition:all .15s;text-transform:none;letter-spacing:0;
+  }
+  .eyebrow-toggle:hover{border-color:var(--cyan);color:var(--cyan);}
+
+  .presets{display:flex;gap:8px;flex-wrap:wrap;}
+  .preset-btn{
+    flex:1;min-width:60px;background:transparent;border:1px solid var(--line);
+    color:var(--ink);padding:10px 6px;border-radius:3px;font-family:inherit;
+    font-size:12px;cursor:pointer;transition:border-color .15s, color .15s;
+  }
+  .preset-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .preset-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,240,214,0.06);}
+
+  #links-list{display:flex;flex-direction:column;gap:10px;}
+  .link-row{
+    border:1px solid var(--line);border-radius:6px;padding:14px;
+    display:flex;flex-direction:column;gap:9px;position:relative;
+    background:rgba(255,255,255,0.015);
+  }
+  .link-row .link-head{display:flex;justify-content:space-between;align-items:center;}
+  .link-head .link-num{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--cyan);
+    letter-spacing:.1em;font-weight:700;
+  }
+  .link-remove{
+    background:none;border:none;color:var(--ink-dim);cursor:pointer;font-size:16px;
+    line-height:1;padding:2px 4px;
+  }
+  .link-remove:hover{color:var(--magenta);}
+
+  .mini-field .field-label{
+    display:flex;justify-content:space-between;font-size:12px;color:var(--ink-dim);
+    margin-bottom:4px;
+  }
+  .mini-field .field-label span:last-child{
+    font-family:'IBM Plex Mono',monospace;color:var(--cyan);font-size:11px;
+  }
+
+  .row-flex{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .dir-btn{
+    flex:1;background:transparent;border:1px solid var(--line);color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:7px;border-radius:3px;
+    cursor:pointer;transition:all .15s;
+  }
+  .dir-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .trace-option{padding-top:2px;border-top:1px dashed var(--line);margin-top:2px;}
+  .trace-label{
+    display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-dim);
+    cursor:pointer;user-select:none;
+  }
+  .trace-label input[type=checkbox]{accent-color:var(--cyan);width:12px;height:12px;cursor:pointer;}
+  input[type=color]{
+    width:26px;height:22px;border:1px solid var(--line);border-radius:3px;
+    background:none;padding:0;cursor:pointer;
+  }
+  input[type=color]:disabled{opacity:.3;cursor:default;}
+
+  #add-link{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.05em;
+    text-transform:uppercase;background:transparent;border:1px dashed var(--line);
+    color:var(--ink-dim);padding:10px;border-radius:3px;cursor:pointer;text-align:center;
+    transition:all .15s;width:100%;
+  }
+  #add-link:hover{border-color:var(--cyan);color:var(--cyan);}
+  #add-link:disabled{opacity:.35;cursor:default;border-color:var(--line);color:var(--ink-dim);}
+
+  .field{margin-bottom:0;}
+  .field-label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink);margin-bottom:7px;}
+  .field-label span:last-child{font-family:'IBM Plex Mono',monospace;color:var(--cyan);font-size:11.5px;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:2px;background:var(--line);outline:none;}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+    background:var(--cyan);cursor:pointer;box-shadow:0 0 8px rgba(0,240,214,.7);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:12px;height:12px;border-radius:50%;background:var(--cyan);border:none;
+    box-shadow:0 0 8px rgba(0,240,214,.7);
+  }
+
+  .swatches{display:flex;gap:10px;}
+  .swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s, transform .15s;}
+  .swatch.active{border-color:var(--ink);transform:scale(1.1);}
+
+  .actions{display:flex;gap:10px;}
+  button.main-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.05em;
+    text-transform:uppercase;background:transparent;border:1px solid var(--line);
+    color:var(--ink);padding:11px 14px;border-radius:3px;cursor:pointer;flex:1;
+    transition:all .15s;
+  }
+  button.main-btn:hover{border-color:var(--ink);color:#fff;}
+  button.main-btn.accent{border-color:var(--cyan);color:var(--cyan);}
+  button.main-btn.accent:hover{background:rgba(0,240,214,.08);}
+
+  footer{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-dim);line-height:1.6;
+    display:flex;justify-content:space-between;align-items:center;}
+  footer a {color:var(--ink-dim);text-decoration:none;cursor:pointer;}
+  footer a:hover{color:var(--cyan);}
+
+  #gear-btn{
+    position:absolute;top:18px;right:18px;width:38px;height:38px;z-index:10;
+    border-radius:50%;border:1px solid var(--line);background:rgba(13,13,22,0.75);
+    color:var(--ink-dim);font-size:18px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;backdrop-filter:blur(4px);transition:all .15s;
+  }
+  #gear-btn:hover{border-color:var(--cyan);color:var(--cyan);transform:rotate(25deg);}
+
+  #app.fullscreen-active{grid-template-columns:1fr;}
+  #app.fullscreen-active #panel{display:none;}
+  #app.fullscreen-active #readout,
+  #app.fullscreen-active #rig,
+  #app.fullscreen-active #view-hint,
+  #app.fullscreen-active #gear-btn,
+  #app.fullscreen-active #quick-bar{
+    opacity:0;pointer-events:none;
+  }
+  #readout,#rig,#view-hint,#gear-btn,#quick-bar{transition:opacity .4s ease;}
+
+  #quick-bar{position:absolute;top:18px;left:18px;z-index:10;display:flex;gap:8px;}
+  .quick-btn{
+    width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
+    background:rgba(13,13,22,0.75);color:var(--ink-dim);font-size:15px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    backdrop-filter:blur(4px);transition:all .15s;
+  }
+  .quick-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .quick-btn.active{
+    border-color:var(--cyan);color:var(--cyan);background:rgba(0,240,214,0.12);
+    box-shadow:0 0 10px rgba(0,240,214,.35);
+  }
+
+  .link-head{cursor:pointer;}
+  .link-chevron{color:var(--ink-dim);font-size:12px;}
+
+  #stage{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    background:var(--bg); overflow: hidden;
+  }
+  
+  canvas{
+    display:block;cursor:grab;touch-action:none;
+    filter: drop-shadow(0 0 4px rgba(0, 240, 214, 0.3));
+  }
+  canvas:active{cursor:grabbing;}
+
+  #rig{position:absolute;bottom:22px;right:22px;width:150px;height:150px;
+    border:1px solid var(--line);border-radius:4px;background:rgba(13,13,22,0.75);backdrop-filter:blur(3px);}
+  #rig-label{position:absolute;top:-9px;left:10px;background:var(--bg);padding:0 6px;
+    font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase;}
+
+  #readout{position:absolute;top:22px;left:22px;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;color:var(--ink-dim);line-height:1.7;}
+  #readout b{color:var(--cyan);font-weight:500;}
+
+  #view-hint{position:absolute;bottom:22px;left:22px;font-family:'IBM Plex Mono',monospace;
+    font-size:10px;color:var(--ink-dim);opacity:.6;letter-spacing:.03em;}
+
+  @media (max-width:820px){
+    #app{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
+    #panel{border-right:none;border-bottom:1px solid var(--line);max-height:55vh;}
+    #rig{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="splash-screen">
+  <div class="splash-container">
+    <canvas id="splash-canvas" class="splash-preview-canvas" width="200" height="200"></canvas>
+    <h1 class="splash-title">Mandal<em>App</em></h1>
+    <p class="splash-subtitle">Máquina de Geometría Sagrada sobre un Cosmos Estelar en constante expansión.</p>
+    
+    <div class="splash-menu">
+      <button class="splash-btn primary" id="btn-start-app">Entrar al Cosmos</button>
+      <button class="splash-btn" id="btn-open-gallery">Galería</button>
+      <button class="splash-btn" id="btn-open-whatsapp">📱 WhatsApp</button>
+      <button class="splash-btn" id="btn-open-discussions">💬 Discusiones</button>
+      <button class="splash-btn" id="btn-open-settings">Configuración</button>
+      <button class="splash-btn" id="btn-open-legal">Privacidad y Términos</button>
+    </div>
+  </div>
+</div>
+
+<div id="settings-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Configuración del Sistema</h2>
+      <button class="modal-close" data-modal="settings-modal">✕</button>
+    </div>
+    
+    <div class="setting-group">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Idioma / Language</div>
+          <div class="setting-desc">Selecciona el idioma de la interfaz</div>
+        </div>
+        <select class="setting-select" id="select-lang">
+          <option value="es" selected>Español</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Estrellas del Fondo Cósmico</div>
+          <div class="setting-desc">Densidad del campo estelar en vivo</div>
+        </div>
+        <select class="setting-select" id="select-stars">
+          <option value="120" selected>Normal (120 estrellas)</option>
+          <option value="250">Intenso (250 estrellas)</option>
+          <option value="0">Desactivado</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Inclinación (Giroscopio) 3D</div>
+          <div class="setting-desc">Mueve tu dispositivo para rotar el mandala en 3D real.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-gyro">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="setting-label">Rotación automática del eje central</div>
+            <div class="setting-desc">El eje 0 gira solo, alternando tandas horario/antihorario</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-axis-auto">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <div class="setting-desc" style="margin-bottom:4px;">Vueltas horario</div>
+            <select class="setting-select" id="select-axis-cw" style="width:100%;">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="40">40</option>
+            </select>
+          </div>
+          <div style="flex:1;">
+            <div class="setting-desc" style="margin-bottom:4px;">Vueltas antihorario</div>
+            <select class="setting-select" id="select-axis-ccw" style="width:100%;">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="40">40</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Auto-pausa por vueltas</div>
+          <div class="setting-desc">Se detiene sola antes de saturar el lienzo (0 = desactivada)</div>
+        </div>
+        <select class="setting-select" id="select-autopause">
+          <option value="0" selected>Desactivada</option>
+          <option value="10">10 vueltas</option>
+          <option value="25">25 vueltas</option>
+          <option value="50">50 vueltas</option>
+          <option value="100">100 vueltas</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Vista de disco 3D (Teclado/Mouse)</div>
+          <div class="setting-desc">Activa el modo 3D si no usas un teléfono móvil.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-3d">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="gallery-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Mi Galería</h2>
+      <button class="modal-close" data-modal="gallery-modal">✕</button>
+    </div>
+    <div class="legal-content">
+      <p>Tus mandalas guardados se quedan solo en este navegador. Aún no hay servidor público.</p>
+      <button class="main-btn accent" id="btn-gallery-save" style="align-self:flex-start;">+ Guardar mandala actual</button>
+      <div id="gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:6px;"></div>
+      <p id="gallery-empty" style="display:none;">Todavía no has guardado ningún mandala.</p>
+    </div>
+  </div>
+</div>
+
+<div id="contact-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Contacto</h2>
+      <button class="modal-close" data-modal="contact-modal">✕</button>
+    </div>
+    <div class="legal-content">
+      <p><strong>Recomendación:</strong> Deja tus reportes en GitHub Issues.</p>
+      <button class="main-btn accent" id="btn-contact-github" style="align-self:flex-start;">Abrir Issue en GitHub</button>
+    </div>
+  </div>
+</div>
+
+<div id="legal-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Privacidad y Términos de Uso</h2>
+      <button class="modal-close" data-modal="legal-modal">✕</button>
+    </div>
+    <div class="legal-content">
+      <h3>1. Política de Privacidad</h3>
+      <p>MandalApp opera íntegramente en tu navegador web local (Client-Side).</p>
+      <h3>2. Derechos de autor</h3>
+      <p>El código fuente de MandalApp es © 2026 Yoshio Carballo (YC).</p>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+
+  <div id="panel">
+    <header>
+      <h1>Mandal<em>App</em></h1>
+      <p>Cadena pura de brazos circulares sobre un fondo estelar animado en tiempo real.</p>
+    </header>
+
+    <div>
+      <span class="eyebrow">Patrón especial</span>
+      <button class="main-btn accent" id="btn-master-pattern" style="width:100%;">✦ Patrón Maestro</button>
+    </div>
+
+    <div>
+      <span class="eyebrow">Opciones Geométricas</span>
+      
+      <div class="mini-field" style="margin-top: 10px;">
+        <div class="field-label"><span>Simetría (Caleidoscopio)</span></div>
+        <select class="setting-select" id="select-symmetry" style="width:100%;">
+          <option value="1" selected>Sin simetría (1 Eje)</option>
+          <option value="4">4 Ejes</option>
+          <option value="6">6 Ejes (Hexagonal)</option>
+          <option value="8">8 Ejes (Octagonal)</option>
+          <option value="12">12 Ejes (Sagrada)</option>
+        </select>
+      </div>
+
+      <div class="mini-field" style="margin-top: 10px;">
+        <div class="field-label"><span>Desvanecimiento de estela</span></div>
+        <select class="setting-select" id="select-fade" style="width:100%;">
+          <option value="0" selected>Infinito (Sin desvanecer)</option>
+          <option value="0.01">Lento</option>
+          <option value="0.05">Rápido</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <span class="eyebrow">Modo de trazo</span>
+      <div class="presets">
+        <button class="preset-btn active" id="mode-cadena" data-mode="cadena">⛓ Cadena</button>
+        <button class="preset-btn" id="mode-gravedad" data-mode="gravedad">🪐 Gravedad</button>
+      </div>
+
+      <div id="gravity-controls" style="display:none;flex-direction:column;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);">
+        <span class="eyebrow" style="margin-bottom:6px;"><span>Pozos de gravedad</span><span id="well-count">1</span></span>
+        <div id="wells-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <p style="font-size:10.5px;color:var(--cyan);margin:0;font-weight:500;">📍 El Pozo 1 está fijo al centro. Puedes arrastrar libremente los demás pozos sobre el lienzo.</p>
+        <button id="btn-add-well" class="main-btn" style="align-self:flex-start;">+ Agregar pozo</button>
+        <label class="trace-label">
+          <input type="checkbox" id="toggle-mutual">
+          Los planetas también se atraen entre sí
+        </label>
+        <button id="btn-reset-orbits" class="main-btn" style="align-self:flex-start;">↺ Reiniciar órbitas</button>
+      </div>
+    </div>
+
+    <div>
+      <span class="eyebrow">
+        <span>Brazos <span id="link-count">5 / 10</span></span>
+        <button class="eyebrow-toggle" id="toggle-links-panel">▸ Mostrar</button>
+      </span>
+      <div id="links-list" style="display:none;"></div>
+      <div style="margin-top:10px;">
+        <button id="add-link" style="display:none;">+ Agregar brazo</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span>Velocidad de trazo</span><span id="v-velocidad">0.8×</span></div>
+      <input type="range" id="velocidad" min="0.2" max="3" step="0.1" value="0.8">
+    </div>
+
+    <div>
+      <span class="eyebrow">Color del resultado final (Trazador)</span>
+      <div class="swatches">
+        <div class="swatch active" style="background:#ff3fb4" data-color="#ff3fb4"></div>
+        <div class="swatch" style="background:#00f0d6" data-color="#00f0d6"></div>
+        <div class="swatch" style="background:#d9b45c" data-color="#d9b45c"></div>
+        <div class="swatch" style="background:#7c5cff" data-color="#7c5cff"></div>
+        <div class="swatch" style="background:#ffffff" data-color="#ffffff"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="main-btn accent" id="btn-toggle">Pausar</button>
+      <button class="main-btn" id="btn-random">Aleatorio</button>
+    </div>
+    <div class="actions">
+      <button class="main-btn" id="btn-clear">Reiniciar trazo</button>
+      <button class="main-btn" id="btn-save">Guardar PNG</button>
+    </div>
+    <div class="actions">
+      <button class="main-btn" id="btn-fit">Ajustar vista</button>
+      <button class="main-btn" id="btn-fullscreen">⛶ Pantalla completa</button>
+    </div>
+
+    <footer>
+      <span>© 2026 YC</span>
+      <div>
+        <a id="footer-gallery">Galería</a> ·
+        <a id="footer-contact">Contacto</a> ·
+        <a id="footer-settings">Config</a> ·
+        <a id="footer-legal">Legal</a>
+      </div>
+    </footer>
+  </div>
+
+  <div id="stage">
+    <button id="gear-btn" title="Configuración">⚙</button>
+    <div id="quick-bar">
+      <button class="quick-btn" id="quick-gyro" title="Giroscopio 3D">📱</button>
+      <button class="quick-btn" id="quick-fullscreen" title="Pantalla completa / Modo inmersivo">⛶</button>
+    </div>
+    <div id="readout">
+      MODO: <b id="r-algoritmo">MODO LIBRE</b><br>
+      VUELTA: <b id="r-vuelta">0.0</b><br>
+      ZOOM: <b id="r-zoom">100%</b>
+    </div>
+    
+    <canvas id="canvas"></canvas>
+
+    <div id="rig"><div id="rig-label">Mecanismo</div></div>
+    <div id="view-hint">Rueda = zoom · Arrastrar = mover vista</div>
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// LIENZO OFF-SCREEN PARA OPTIMIZACIÓN
+const trailCanvas = document.createElement('canvas');
+const trailCtx = trailCanvas.getContext('2d');
+
+const rigCanvas = document.createElement('canvas');
+document.getElementById('rig').appendChild(rigCanvas);
+const rigCtx = rigCanvas.getContext('2d');
+
+let W, H, scale;
+function resize(){
+  const stage = document.getElementById('stage');
+  W = stage.clientWidth; H = stage.clientHeight;
+  
+  canvas.width = W * devicePixelRatio; canvas.height = H * devicePixelRatio;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  
+  trailCanvas.width = W * devicePixelRatio; trailCanvas.height = H * devicePixelRatio;
+  
+  scale = Math.min(W,H) / 14;
+
+  rigCanvas.width = 150*devicePixelRatio; rigCanvas.height = 150*devicePixelRatio;
+  rigCanvas.style.width='150px'; rigCanvas.style.height='150px';
+  rigCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  
+  clearTrails();
+}
+window.addEventListener('resize', resize);
+
+const MAX_LINKS = 10;
+const PALETTE = ['#ff3fb4','#00f0d6','#d9b45c','#7c5cff','#ffffff','#3ddc84','#00e5ff'];
+const GITHUB_ISSUES_URL = 'https://github.com/yoshiocarballo26-cyber/MandalApp/issues/new';
+const GALLERY_KEY = 'mandalapp_gallery_v1';
+const RADIUS_MIN = 0.3, RADIUS_MAX = 10, SPEED_MAX = 15, SPEED_MIN = 0.2;
+const FIXED_GROSOR = 0.8; 
+
+function baseLink(overrides){
+  return Object.assign({
+    radius: 2, speed: 1, dir: 1,
+    traceEnabled: true, traceColor: '#ff3fb4',
+    colorShift: false,
+    especial: 'ninguna',
+    planetSize: 3,
+    _expanded: false,
+    lastPt: null
+  }, overrides);
+}
+
+const PRESETS = {
+  maestro: () => [
+    baseLink({radius:3.4, speed:1, dir:1, traceEnabled:true, traceColor:'#7c5cff'}),
+    baseLink({radius:2.1, speed:3, dir:-1, traceEnabled:true, traceColor:'#00f0d6'}),
+    baseLink({radius:1.5, speed:6, dir:1, traceEnabled:true, traceColor:'#ff3fb4'}),
+    baseLink({radius:0.9, speed:12, dir:-1, traceEnabled:true, traceColor:'#d9b45c'}),
+    baseLink({radius:0.4, speed:24, dir:1, traceEnabled:true, traceColor:'#ffffff'}),
+  ]
+};
+
+const state = {
+  links: PRESETS.maestro(),
+  velocidad: 0.8,
+  grosor: FIXED_GROSOR,
+  color: '#ff3fb4',
+  playing: false,
+  t: 0,
+  tip: null,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+  starCount: 120,
+  autoPauseLaps: 0,
+  drawMode: 'cadena',
+  symmetry: 1,
+  fadeAmount: 0,
+  view3d: { enabled: false, angle: 0 },
+  gravity: { wells: [{ mass: 40, x: 0, y: 0 }], mutual: false },
+  gyro: { enabled: false, beta: 0, gamma: 0 },
+  axisAuto: { enabled: false, cwTurns: 10, ccwTurns: 20, dir: 1, turnsDone: 0, angle: 0 }
+};
+
+/* ---- SISTEMA DE ESTRELLAS CÓSMICAS ---- */
+let stars = [];
+function initStars(count){
+  stars = [];
+  for(let i=0; i<count; i++){
+    stars.push({
+      x: (Math.random() - 0.5) * 2000,
+      y: (Math.random() - 0.5) * 2000,
+      size: Math.random() * 1.8 + 0.4,
+      alpha: Math.random(),
+      pulseSpeed: Math.random() * 0.02 + 0.005,
+      color: PALETTE[Math.floor(Math.random() * PALETTE.length)]
+    });
+  }
+}
+initStars(120);
+
+function drawCosmicBackground(){
+  const bgGrad = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, Math.max(W,H)*0.8);
+  bgGrad.addColorStop(0, '#090916');
+  bgGrad.addColorStop(0.5, '#06060c');
+  bgGrad.addColorStop(1, '#020205');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  if(state.starCount === 0) return;
+
+  ctx.save();
+  ctx.translate(W/2 + state.panX, H/2 + state.panY);
+  
+  stars.forEach(star => {
+    star.alpha += star.pulseSpeed;
+    if(star.alpha > 1 || star.alpha < 0.2) star.pulseSpeed *= -1;
+
+    ctx.fillStyle = star.color;
+    ctx.globalAlpha = star.alpha * 0.75;
+    ctx.beginPath();
+    ctx.arc(star.x / state.zoom, star.y / state.zoom, star.size * Math.sqrt(state.zoom), 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.restore();
+  ctx.globalAlpha = 1.0;
+}
+
+function calcularPuntos(t, links, mode){
+  links = links || state.links;
+  mode = mode || state.drawMode;
+  const puntos=[{x:0,y:0}];
+  if(mode === 'gravedad'){
+    for(const link of links){
+      const theta = link.dir * link.speed * t;
+      puntos.push({ x: link.radius*Math.cos(theta), y: link.radius*Math.sin(theta) });
+    }
+    return puntos;
+  }
+  let x=0, y=0;
+  for(const link of links){
+    const theta = (link.especial === 'estatico') ? 0 : link.dir * link.speed * t;
+    let r = link.radius;
+    if(link.especial === 'respiracion'){
+      r = link.radius * (0.55 + 0.45*Math.sin(t * (link.speed*0.4 + 0.5)));
+    }
+    x += r * Math.cos(theta);
+    y += r * Math.sin(theta);
+    puntos.push({x,y});
+  }
+  return puntos;
+}
+
+const GRAV_SOFTENING = 0.35;
+const GRAV_ESCAPE_DIST = 40;
+const GRAV_MUTUAL_FACTOR = 0.35;
+
+function initGravityBody(link, angle){
+  const r = Math.max(0.6, link.radius);
+  const ref = state.gravity.wells[0] || {mass:40, x:0, y:0};
+  link.gx = ref.x + r*Math.cos(angle);
+  link.gy = ref.y + r*Math.sin(angle);
+  const totalMass = state.gravity.wells.reduce((s,w)=>s+w.mass, 0);
+  const vCirc = Math.sqrt(totalMass / r) * (link.speed / 5);
+  const tx = -Math.sin(angle), ty = Math.cos(angle);
+  link.gvx = tx * vCirc * link.dir;
+  link.gvy = ty * vCirc * link.dir;
+}
+
+function initGravityBodies(){
+  const n = state.links.length;
+  state.links.forEach((link, i) => initGravityBody(link, (i / n) * Math.PI * 2));
+}
+
+function gravityStep(dt){
+  const links = state.links;
+  const n = links.length;
+  const wells = state.gravity.wells;
+  const ax = new Array(n).fill(0), ay = new Array(n).fill(0);
+
+  links.forEach((p, i) => {
+    for(const well of wells){
+      const dx = well.x - p.gx, dy = well.y - p.gy;
+      const r2 = dx*dx + dy*dy + GRAV_SOFTENING;
+      const r = Math.sqrt(r2);
+      const a = well.mass / r2;
+      ax[i] += a * (dx / r);
+      ay[i] += a * (dy / r);
+    }
+  });
+
+  if(state.gravity.mutual){
+    const totalMass = wells.reduce((s,w)=>s+w.mass, 0);
+    const mutualMass = totalMass * GRAV_MUTUAL_FACTOR;
+    for(let i=0; i<n; i++){
+      for(let j=0; j<n; j++){
+        if(i===j) continue;
+        const dx = links[j].gx - links[i].gx, dy = links[j].gy - links[i].gy;
+        const r2 = dx*dx + dy*dy + GRAV_SOFTENING;
+        const r = Math.sqrt(r2);
+        const a = mutualMass / r2;
+        ax[i] += a * (dx / r);
+        ay[i] += a * (dy / r);
+      }
+    }
+  }
+
+  links.forEach((p, i) => {
+    p.gvx += ax[i]*dt; p.gvy += ay[i]*dt;
+    p.gx += p.gvx*dt;  p.gy += p.gvy*dt;
+  });
+
+  links.forEach((p, i) => {
+    const minDist = Math.min(...wells.map(w => Math.hypot(p.gx-w.x, p.gy-w.y)));
+    if(!isFinite(minDist) || minDist > GRAV_ESCAPE_DIST) initGravityBody(p, (i/n)*Math.PI*2 + Math.random());
+  });
+}
+
+function clearTrails() {
+  trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+  state.links.forEach(l => l.lastPt = null);
+}
+
+function redrawTrace(){
+  // Limpiamos y escalamos a la densidad de píxeles correcta
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  
+  // El fondo se dibuja plano SIEMPRE (No afectado por 3D)
+  drawCosmicBackground();
+
+  const s = scale * state.zoom;
+
+  ctx.save();
+  // Trasladamos el contexto virtualmente al centro de la pantalla
+  ctx.translate(W/2 + state.panX, H/2 + state.panY);
+
+  // APLICAMOS 3D MATEMÁTICO (Solo al Mandala)
+  if(state.gyro.enabled){
+    const tiltRot = (state.gyro.gamma / 90) * 0.35;
+    ctx.rotate(tiltRot);
+    const tiltSquash = 1 - Math.min(0.5, Math.abs(state.gyro.beta) / 180);
+    ctx.scale(1, Math.max(0.1, tiltSquash));
+  } else if(state.view3d.enabled){
+    const squash = 0.35 + 0.65*Math.abs(Math.cos(state.view3d.angle));
+    ctx.scale(1, Math.max(0.1, squash));
+  }
+
+  // Dibujamos el lienzo virtual retrocediendo el centro
+  // Esto permite que el squash del 3D se aplique perfecto desde el medio.
+  ctx.drawImage(trailCanvas, -(W/2 + state.panX), -(H/2 + state.panY), W, H);
+
+  // Rotamos para los cuerpos y astros dinámicos (que no se guardan en el trail)
+  if(state.axisAuto.enabled) ctx.rotate(state.axisAuto.angle);
+
+  if(state.drawMode === 'gravedad'){
+    for(let wi=1; wi<state.gravity.wells.length; wi++){
+      const w = state.gravity.wells[wi];
+      const wp = {x:w.x*s, y:w.y*s};
+      const rOuter = Math.max(5, state.grosor*4*Math.sqrt(w.mass/40)), rInner = rOuter*0.55;
+      ctx.beginPath();
+      ctx.arc(wp.x, wp.y, rOuter, 0, Math.PI*2);
+      ctx.strokeStyle = `hsl(174,90%,65%)`;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(wp.x, wp.y, rInner, 0, Math.PI*2);
+      ctx.fillStyle = '#000000';
+      ctx.fill();
+    }
+    for(const link of state.links){
+      if(link.gx === undefined) continue;
+      const px = link.gx*s, py = link.gy*s;
+      ctx.fillStyle = link.traceColor;
+      ctx.beginPath();
+      ctx.arc(px, py, Math.max(1.5, link.planetSize), 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  if(state.tip){
+    const p = {x: state.tip.x*s, y: state.tip.y*s};
+    if(state.drawMode === 'gravedad'){
+      const rOuter = Math.max(6, state.grosor*4), rInner = rOuter*0.55;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rOuter, 0, Math.PI*2);
+      ctx.strokeStyle = `hsl(174,90%,65%)`;
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rInner, 0, Math.PI*2);
+      ctx.fillStyle = '#000000';
+      ctx.fill();
+    } else {
+      ctx.fillStyle = state.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, Math.max(2.2, state.grosor*1.6), 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawRig(puntos){
+  rigCtx.clearRect(0,0,150,150);
+  const cx=75, cy=75, s=8;
+  rigCtx.strokeStyle = 'rgba(232,230,240,0.35)'; rigCtx.lineWidth = 1;
+  if(state.drawMode === 'gravedad'){
+    puntos.slice(1).forEach(pt => {
+      rigCtx.beginPath(); rigCtx.moveTo(cx, cy); rigCtx.lineTo(cx+pt.x*s, cy+pt.y*s); rigCtx.stroke();
+    });
+  } else {
+    rigCtx.beginPath(); rigCtx.moveTo(cx,cy);
+    puntos.forEach(pt => rigCtx.lineTo(cx+pt.x*s, cy+pt.y*s));
+    rigCtx.stroke();
+  }
+  puntos.forEach((pt,i)=>{
+    rigCtx.beginPath(); rigCtx.arc(cx+pt.x*s, cy+pt.y*s, 2, 0, Math.PI*2);
+    rigCtx.fillStyle = (i === puntos.length-1) ? state.color : '#00f0d6';
+    rigCtx.fill();
+  });
+}
+
+function resetTrace(){
+  state.tip = null;
+  state.t = 0;
+  clearTrails();
+  redrawTrace();
+}
+
+function resetView(){
+  state.zoom = 1; state.panX = 0; state.panY = 0;
+  clearTrails();
+  redrawTrace();
+}
+
+function renderLinks(){
+  const list = document.getElementById('links-list');
+  list.innerHTML = '';
+  document.getElementById('link-count').textContent = `${state.links.length} / ${MAX_LINKS}`;
+
+  state.links.forEach((link, i)=>{
+    const row = document.createElement('div');
+    row.className = 'link-row';
+    const planetSizeField = state.drawMode === 'gravedad' ? `
+      <div class="mini-field">
+        <div class="field-label"><span>Tamaño planeta</span><span class="val-planetsize">${link.planetSize.toFixed(1)}</span></div>
+        <input type="range" class="in-planetsize" data-i="${i}" min="1" max="10" step="0.5" value="${link.planetSize}">
+      </div>` : '';
+    row.innerHTML = `
+      <div class="link-head" data-i="${i}">
+        <span class="link-num">BRAZO ${i+1}</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="link-remove main-remove" data-i="${i}" ${state.links.length<=1?'disabled style="opacity:.25"':''}>✕</button>
+          <span class="link-chevron">${link._expanded ? '▾' : '▸'}</span>
+        </div>
+      </div>
+      <div class="link-body" data-i="${i}" style="display:${link._expanded?'flex':'none'};flex-direction:column;gap:9px;">
+        <div class="mini-field">
+          <div class="field-label"><span>Radio</span><span class="val-radius">${link.radius.toFixed(1)}</span></div>
+          <input type="range" class="in-radius" data-i="${i}" min="${RADIUS_MIN}" max="${RADIUS_MAX}" step="0.1" value="${link.radius}">
+        </div>
+        <div class="mini-field">
+          <div class="field-label"><span>Velocidad</span><span class="val-speed">${link.speed.toFixed(1)}</span></div>
+          <input type="range" class="in-speed" data-i="${i}" min="0.2" max="15" step="0.2" value="${link.speed}">
+        </div>
+        ${planetSizeField}
+        <div class="row-flex">
+          <button class="dir-btn mdir-btn" data-i="${i}">${link.dir===1 ? '↻ Horario' : '↺ Antihorario'}</button>
+        </div>
+        <div class="mini-field">
+          <div class="field-label"><span>Función especial</span></div>
+          <select class="setting-select in-especial" data-i="${i}" style="width:100%;">
+            <option value="ninguna" ${link.especial==='ninguna'?'selected':''}>Ninguna</option>
+            <option value="estatico" ${link.especial==='estatico'?'selected':''}>Estático (ancla)</option>
+            <option value="respiracion" ${link.especial==='respiracion'?'selected':''}>Respiración</option>
+          </select>
+        </div>
+        <div class="row-flex trace-option">
+          <label class="trace-label">
+            <input type="checkbox" class="in-trace-en" data-i="${i}" ${link.traceEnabled?'checked':''}>
+            Estela propia
+          </label>
+          <input type="color" class="in-trace-col" data-i="${i}" value="${link.traceColor}" ${link.colorShift?'disabled':''}>
+        </div>
+        <label class="trace-label">
+          <input type="checkbox" class="in-colorshift" data-i="${i}" ${link.colorShift?'checked':''}>
+          Arcoíris automático
+        </label>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  document.getElementById('add-link').disabled = state.links.length >= MAX_LINKS;
+
+  list.querySelectorAll('.link-head').forEach(head=>{
+    head.addEventListener('click', e=>{
+      if(e.target.closest('.link-remove')) return;
+      const i = +head.dataset.i;
+      state.links[i]._expanded = !state.links[i]._expanded;
+      renderLinks();
+    });
+  });
+  list.querySelectorAll('.in-radius').forEach(el=>{
+    el.addEventListener('input', e=>{
+      state.links[+e.target.dataset.i].radius = +e.target.value;
+      e.target.parentElement.querySelector('.val-radius').textContent = (+e.target.value).toFixed(1);
+      clearTrails();
+    });
+  });
+  list.querySelectorAll('.in-speed').forEach(el=>{
+    el.addEventListener('input', e=>{
+      state.links[+e.target.dataset.i].speed = +e.target.value;
+      e.target.parentElement.querySelector('.val-speed').textContent = (+e.target.value).toFixed(1);
+      clearTrails();
+    });
+  });
+  list.querySelectorAll('.in-planetsize').forEach(el=>{
+    el.addEventListener('input', e=>{
+      state.links[+e.target.dataset.i].planetSize = +e.target.value;
+      e.target.parentElement.querySelector('.val-planetsize').textContent = (+e.target.value).toFixed(1);
+    });
+  });
+  list.querySelectorAll('.in-especial').forEach(el=>{
+    el.addEventListener('change', e=>{
+      state.links[+e.target.dataset.i].especial = e.target.value;
+      clearTrails();
+    });
+  });
+  list.querySelectorAll('.mdir-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const i = +e.target.dataset.i;
+      state.links[i].dir *= -1;
+      clearTrails(); renderLinks();
+    });
+  });
+  list.querySelectorAll('.main-remove').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      const i = +e.target.dataset.i;
+      if(state.links.length<=1) return;
+      state.links.splice(i,1);
+      clearTrails(); renderLinks();
+    });
+  });
+  list.querySelectorAll('.in-trace-en').forEach(el=>{
+    el.addEventListener('change', e=>{
+      const i = +e.target.dataset.i;
+      state.links[i].traceEnabled = e.target.checked;
+      clearTrails(); renderLinks();
+    });
+  });
+  list.querySelectorAll('.in-trace-col').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const i = +e.target.dataset.i;
+      state.links[i].traceColor = e.target.value;
+    });
+  });
+  list.querySelectorAll('.in-colorshift').forEach(el=>{
+    el.addEventListener('change', e=>{
+      const i = +e.target.dataset.i;
+      state.links[i].colorShift = e.target.checked;
+      renderLinks();
+    });
+  });
+}
+
+function renderWells(){
+  const list = document.getElementById('wells-list');
+  if(!list) return;
+  list.innerHTML = '';
+  document.getElementById('well-count').textContent = state.gravity.wells.length;
+  state.gravity.wells.forEach((well, i)=>{
+    const row = document.createElement('div');
+    row.className = 'link-row';
+    row.innerHTML = `
+      <div class="link-head" style="cursor:default;">
+        <span class="link-num">POZO ${i+1}</span>
+        <button class="link-remove well-remove" data-i="${i}" ${state.gravity.wells.length<=1?'disabled style="opacity:.25"':''}>✕</button>
+      </div>
+      <div class="mini-field">
+        <div class="field-label"><span>Masa</span><span class="val-mass">${well.mass}</span></div>
+        <input type="range" class="in-well-mass" data-i="${i}" min="5" max="150" step="5" value="${well.mass}">
+      </div>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.in-well-mass').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const i = +e.target.dataset.i;
+      state.gravity.wells[i].mass = +e.target.value;
+      e.target.parentElement.querySelector('.val-mass').textContent = e.target.value;
+    });
+  });
+  list.querySelectorAll('.well-remove').forEach(el=>{
+    el.addEventListener('click', e=>{
+      const i = +e.target.dataset.i;
+      if(state.gravity.wells.length<=1) return;
+      state.gravity.wells.splice(i,1);
+      renderWells();
+    });
+  });
+}
+
+document.getElementById('btn-add-well').addEventListener('click', ()=>{
+  if(state.gravity.wells.length >= 4) return;
+  const ang = Math.random()*Math.PI*2;
+  const dist = 3 + Math.random()*3;
+  state.gravity.wells.push({ mass: 30, x: Math.cos(ang)*dist, y: Math.sin(ang)*dist });
+  renderWells();
+});
+
+document.getElementById('add-link').addEventListener('click', ()=>{
+  if(state.links.length >= MAX_LINKS) return;
+  state.links.push(baseLink({
+    radius: 1.5, speed: 4, dir: -1,
+    traceEnabled: true, traceColor: PALETTE[Math.floor(Math.random()*PALETTE.length)]
+  }));
+  document.getElementById('r-algoritmo').textContent = 'PERSONALIZADO';
+  renderLinks();
+});
+
+document.querySelectorAll('.preset-btn[data-mode]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.preset-btn[data-mode]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.drawMode = btn.dataset.mode;
+    document.getElementById('gravity-controls').style.display = (state.drawMode === 'gravedad') ? 'flex' : 'none';
+    if(state.drawMode === 'gravedad') initGravityBodies();
+    renderLinks();
+    resetTrace();
+  });
+});
+
+document.getElementById('toggle-3d').addEventListener('change', e=>{
+  state.view3d.enabled = e.target.checked;
+  state.view3d.angle = 0;
+});
+document.getElementById('toggle-mutual').addEventListener('change', e=>{
+  state.gravity.mutual = e.target.checked;
+});
+document.getElementById('btn-reset-orbits').addEventListener('click', ()=>{
+  initGravityBodies();
+  resetTrace();
+});
+
+document.getElementById('btn-master-pattern').addEventListener('click', ()=>{
+  const goldMate = 'hsl(43,45%,42%)';
+  const goldSemi = 'hsl(43,68%,52%)';
+  const fuchsiaMate = 'hsl(327,45%,45%)';
+  const fuchsiaSemi = 'hsl(327,72%,55%)';
+  const fuchsiaVivid = 'hsl(327,95%,62%)';
+  const cwArms = [1,2,3,4,6,7,8]; 
+  const noTraceArms = [1,3,6,7,8]; 
+  const traceColors = {2:goldMate, 4:goldSemi, 5:fuchsiaMate, 9:fuchsiaSemi, 10:fuchsiaVivid};
+  state.links = Array.from({length:10}, (_, idx)=>{
+    const n = idx+1;
+    return baseLink({
+      radius: RADIUS_MAX,
+      speed: SPEED_MAX,
+      dir: cwArms.includes(n) ? 1 : -1,
+      traceEnabled: !noTraceArms.includes(n),
+      traceColor: traceColors[n] || '#ffffff'
+    });
+  });
+  document.getElementById('r-algoritmo').textContent = 'PATRÓN MAESTRO';
+  renderLinks();
+  resetTrace();
+});
+
+document.querySelectorAll('.swatch').forEach(sw=>{
+  sw.addEventListener('click', ()=>{
+    document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+    sw.classList.add('active');
+    state.color = sw.dataset.color;
+    redrawTrace();
+  });
+});
+
+document.getElementById('velocidad').addEventListener('input', e=>{
+  state.velocidad = +e.target.value;
+  document.getElementById('v-velocidad').textContent = state.velocidad.toFixed(1)+'×';
+});
+
+document.getElementById('select-symmetry').addEventListener('change', e=>{
+  state.symmetry = +e.target.value;
+  clearTrails();
+});
+document.getElementById('select-fade').addEventListener('change', e=>{
+  state.fadeAmount = +e.target.value;
+});
+
+const toggleBtn = document.getElementById('btn-toggle');
+toggleBtn.addEventListener('click', e=>{
+  state.playing = !state.playing;
+  e.target.textContent = state.playing ? 'Pausar' : 'Reanudar';
+  if(state.playing) {
+      state.links.forEach(l => l.lastPt = null);
+  }
+});
+document.getElementById('btn-clear').addEventListener('click', resetTrace);
+document.getElementById('btn-fit').addEventListener('click', resetView);
+document.getElementById('btn-random').addEventListener('click', ()=>{
+  const n = 3 + Math.floor(Math.random()*3);
+  state.links = Array.from({length:n}, ()=> baseLink({
+    radius: +(RADIUS_MIN + Math.random()*(RADIUS_MAX-RADIUS_MIN)).toFixed(1),
+    speed: +(0.5 + Math.random()*6).toFixed(1),
+    dir: Math.random()<0.5 ? 1 : -1,
+    traceEnabled: true,
+    traceColor: PALETTE[Math.floor(Math.random()*PALETTE.length)]
+  }));
+  state.color = PALETTE[Math.floor(Math.random()*PALETTE.length)];
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active', s.dataset.color===state.color));
+  document.getElementById('r-algoritmo').textContent = 'PERSONALIZADO'; 
+  renderLinks(); resetTrace();
+});
+
+document.getElementById('btn-save').addEventListener('click', ()=>{
+  const saveCanvas = document.createElement('canvas');
+  saveCanvas.width = W * devicePixelRatio;
+  saveCanvas.height = H * devicePixelRatio;
+  const sCtx = saveCanvas.getContext('2d');
+  
+  const bgGrad = sCtx.createRadialGradient(saveCanvas.width/2, saveCanvas.height/2, 50, saveCanvas.width/2, saveCanvas.height/2, Math.max(saveCanvas.width,saveCanvas.height)*0.8);
+  bgGrad.addColorStop(0, '#090916'); bgGrad.addColorStop(1, '#020205');
+  sCtx.fillStyle = bgGrad; sCtx.fillRect(0, 0, saveCanvas.width, saveCanvas.height);
+  
+  sCtx.drawImage(trailCanvas, 0, 0);
+  
+  const link = document.createElement('a');
+  link.download = 'mandalapp-cosmos.png';
+  link.href = saveCanvas.toDataURL('image/png');
+  link.click();
+});
+
+const splashScreen = document.getElementById('splash-screen');
+document.getElementById('btn-start-app').addEventListener('click', ()=>{
+  splashScreen.classList.add('hidden');
+  splashActive = false;
+  state.playing = true;
+  toggleBtn.textContent = 'Pausar';
+});
+
+const settingsModal = document.getElementById('settings-modal');
+const legalModal = document.getElementById('legal-modal');
+
+document.getElementById('btn-open-settings').addEventListener('click', ()=> settingsModal.classList.add('active'));
+document.getElementById('btn-open-legal').addEventListener('click', ()=> legalModal.classList.add('active'));
+document.getElementById('footer-settings').addEventListener('click', ()=> settingsModal.classList.add('active'));
+document.getElementById('footer-legal').addEventListener('click', ()=> legalModal.classList.add('active'));
+
+const galleryModal = document.getElementById('gallery-modal');
+const contactModal = document.getElementById('contact-modal');
+document.getElementById('btn-open-gallery').addEventListener('click', ()=>{ galleryModal.classList.add('active'); renderGallery(); });
+document.getElementById('footer-gallery').addEventListener('click', ()=>{ galleryModal.classList.add('active'); renderGallery(); });
+document.getElementById('footer-contact').addEventListener('click', ()=> contactModal.classList.add('active'));
+
+document.getElementById('toggle-axis-auto').addEventListener('change', e=>{
+  state.axisAuto.enabled = e.target.checked;
+  state.axisAuto.dir = 1; state.axisAuto.turnsDone = 0;
+});
+document.getElementById('select-axis-cw').addEventListener('change', e=> state.axisAuto.cwTurns = +e.target.value);
+document.getElementById('select-axis-ccw').addEventListener('change', e=> state.axisAuto.ccwTurns = +e.target.value);
+document.getElementById('select-autopause').addEventListener('change', e=> state.autoPauseLaps = +e.target.value);
+
+document.getElementById('toggle-links-panel').addEventListener('click', ()=>{
+  const list = document.getElementById('links-list');
+  const addBtn = document.getElementById('add-link');
+  const btn = document.getElementById('toggle-links-panel');
+  const collapsed = list.style.display === 'none';
+  list.style.display = collapsed ? 'flex' : 'none';
+  addBtn.style.display = collapsed ? 'block' : 'none';
+  btn.textContent = collapsed ? '▾ Ocultar' : '▸ Mostrar';
+});
+
+/* ---- GALERÍA LOCAL ---- */
+function loadGallery(){
+  try{ return JSON.parse(localStorage.getItem(GALLERY_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function saveGallery(items){
+  try{ localStorage.setItem(GALLERY_KEY, JSON.stringify(items)); }
+  catch(e){ alert('No se pudo guardar.'); }
+}
+function renderGallery(){
+  const items = loadGallery();
+  const grid = document.getElementById('gallery-grid');
+  const empty = document.getElementById('gallery-empty');
+  grid.innerHTML = '';
+  empty.style.display = items.length ? 'none' : 'block';
+  items.forEach((item, i)=>{
+    const card = document.createElement('div');
+    card.style.cssText = 'border:1px solid var(--line);border-radius:4px;overflow:hidden;';
+    card.innerHTML = `
+      <img src="${item.data}" style="width:100%;display:block;">
+      <div style="display:flex;justify-content:space-between;padding:6px;font-size:10px;color:var(--ink-dim);">
+        <a class="gal-dl" data-i="${i}" style="cursor:pointer;">Descargar</a>
+        <a class="gal-del" data-i="${i}" style="cursor:pointer;color:var(--magenta);">Borrar</a>
+      </div>`;
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll('.gal-dl').forEach(el=> el.addEventListener('click', e=>{
+    const item = loadGallery()[+e.target.dataset.i];
+    const a = document.createElement('a');
+    a.href = item.data; a.download = `mandalapp-${item.fecha}.png`; a.click();
+  }));
+  grid.querySelectorAll('.gal-del').forEach(el=> el.addEventListener('click', e=>{
+    const items = loadGallery();
+    items.splice(+e.target.dataset.i, 1);
+    saveGallery(items); renderGallery();
+  }));
+}
+document.getElementById('btn-gallery-save').addEventListener('click', ()=>{
+  const items = loadGallery();
+  items.push({ data: canvas.toDataURL('image/png'), fecha: new Date().toISOString().slice(0,19).replace(/[:T]/g,'-') });
+  saveGallery(items); renderGallery();
+});
+
+document.getElementById('btn-open-whatsapp').addEventListener('click', () => {
+  window.open('https://wa.me/525649268628?text=Hola, encontré MandalApp y me gustaría contactarte', '_blank');
+});
+  
+document.getElementById('btn-open-discussions').addEventListener('click', () => {
+  window.open('https://github.com/yoshiocarballo26-cyber/MandalApp/discussions', '_blank');
+});
+
+document.getElementById('btn-contact-github').addEventListener('click', ()=>{
+  window.open(GITHUB_ISSUES_URL, '_blank');
+});
+
+document.querySelectorAll('.modal-close').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.getElementById(e.target.dataset.modal).classList.remove('active');
+  });
+});
+
+document.getElementById('select-lang').addEventListener('change', e => state.settings.lang = e.target.value);
+document.getElementById('select-stars').addEventListener('change', e => {
+  state.starCount = +e.target.value;
+  initStars(state.starCount);
+  redrawTrace();
+});
+
+document.getElementById('gear-btn').addEventListener('click', ()=> settingsModal.classList.add('active'));
+document.addEventListener('fullscreenchange', ()=>{
+  document.getElementById('app').classList.toggle('fullscreen-active', !!document.fullscreenElement);
+  syncQuickBar();
+  resize();
+  redrawTrace();
+});
+
+/* ---- LÓGICA DE RATÓN Y TÁCTIL (INCLUYENDO LA MATRIZ INVERSA 3D) ---- */
+let isDragging = false, dragStartX=0, dragStartY=0, panStartX=0, panStartY=0;
+let draggingWellIndex = -1;
+
+function getWorldCoords(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / devicePixelRatio / rect.width;
+  const scaleY = canvas.height / devicePixelRatio / rect.height;
+
+  let cssX = (clientX - rect.left) * scaleX;
+  let cssY = (clientY - rect.top) * scaleY;
+  
+  let dx = cssX - (W/2 + state.panX);
+  let dy = cssY - (H/2 + state.panY);
+
+  // Invertir el 3D para que el puntero sepa a dónde está tocando.
+  if(state.gyro.enabled){
+      const tiltSquash = 1 - Math.min(0.5, Math.abs(state.gyro.beta) / 180);
+      dy /= Math.max(0.1, tiltSquash);
+      const tiltRot = (state.gyro.gamma / 90) * 0.35;
+      const rx = dx * Math.cos(-tiltRot) - dy * Math.sin(-tiltRot);
+      const ry = dx * Math.sin(-tiltRot) + dy * Math.cos(-tiltRot);
+      dx = rx; dy = ry;
+  } else if(state.view3d.enabled){
+      const squash = 0.35 + 0.65*Math.abs(Math.cos(state.view3d.angle));
+      dy /= Math.max(0.1, squash);
+  }
+
+  const s = scale * state.zoom;
+  let worldX = dx / s;
+  let worldY = dy / s;
+
+  if (state.axisAuto.enabled) {
+      const angle = -state.axisAuto.angle;
+      const wx = worldX * Math.cos(angle) - worldY * Math.sin(angle);
+      const wy = worldX * Math.sin(angle) + worldY * Math.cos(angle);
+      worldX = wx; worldY = wy;
+  }
+  return {x: worldX, y: worldY};
+}
+
+canvas.addEventListener('mousedown', e=>{
+  const coords = getWorldCoords(e.clientX, e.clientY);
+  const s = scale * state.zoom;
+  let hitWell = -1;
+  
+  if (state.drawMode === 'gravedad') {
+     for (let i = 1; i < state.gravity.wells.length; i++) {
+        const w = state.gravity.wells[i];
+        const dist = Math.hypot(w.x - coords.x, w.y - coords.y);
+        const hitRadius = 25 / s; 
+        if (dist < hitRadius) { hitWell = i; break; }
+     }
+  }
+
+  if (hitWell !== -1) {
+     draggingWellIndex = hitWell;
+     canvas.style.cursor = 'grabbing';
+  } else {
+     isDragging = true;
+     dragStartX = e.clientX; dragStartY = e.clientY;
+     panStartX = state.panX; panStartY = state.panY;
+  }
+});
+
+window.addEventListener('mousemove', e=>{
+  if (draggingWellIndex !== -1) {
+     const coords = getWorldCoords(e.clientX, e.clientY);
+     state.gravity.wells[draggingWellIndex].x = coords.x;
+     state.gravity.wells[draggingWellIndex].y = coords.y;
+     clearTrails();
+     redrawTrace();
+  } else if(isDragging) {
+     state.panX = panStartX + (e.clientX - dragStartX);
+     state.panY = panStartY + (e.clientY - dragStartY);
+     clearTrails();
+     redrawTrace();
+  }
+});
+
+window.addEventListener('mouseup', ()=>{ 
+    isDragging=false; 
+    draggingWellIndex = -1;
+    canvas.style.cursor = 'grab';
+});
+
+canvas.addEventListener('wheel', e=>{
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.08 : 0.92;
+  state.zoom = Math.min(6, Math.max(0.08, state.zoom*factor));
+  clearTrails();
+  redrawTrace();
+}, {passive:false});
+
+let touchStartX=0, touchStartY=0, touchPanStartX=0, touchPanStartY=0;
+let pinchStartDist=0, pinchStartZoom=1;
+
+function touchDist(t){
+  const dx = t[0].clientX - t[1].clientX;
+  const dy = t[0].clientY - t[1].clientY;
+  return Math.hypot(dx, dy);
+}
+
+canvas.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  if(e.touches.length === 1){
+    const coords = getWorldCoords(e.touches[0].clientX, e.touches[0].clientY);
+    const s = scale * state.zoom;
+    let hitWell = -1;
+    
+    if (state.drawMode === 'gravedad') {
+       for (let i = 1; i < state.gravity.wells.length; i++) {
+          const w = state.gravity.wells[i];
+          const hitRadius = 35 / s; 
+          if (Math.hypot(w.x - coords.x, w.y - coords.y) < hitRadius) { hitWell = i; break; }
+       }
+    }
+
+    if (hitWell !== -1) {
+       draggingWellIndex = hitWell;
+    } else {
+       touchStartX = e.touches[0].clientX;
+       touchStartY = e.touches[0].clientY;
+       touchPanStartX = state.panX;
+       touchPanStartY = state.panY;
+    }
+  } else if(e.touches.length === 2){
+    pinchStartDist = touchDist(e.touches);
+    pinchStartZoom = state.zoom;
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchmove', e=>{
+  e.preventDefault();
+  if(draggingWellIndex !== -1 && e.touches.length === 1) {
+     const coords = getWorldCoords(e.touches[0].clientX, e.touches[0].clientY);
+     state.gravity.wells[draggingWellIndex].x = coords.x;
+     state.gravity.wells[draggingWellIndex].y = coords.y;
+     clearTrails();
+     redrawTrace();
+  } else if(e.touches.length === 1 && draggingWellIndex === -1){
+    state.panX = touchPanStartX + (e.touches[0].clientX - touchStartX);
+    state.panY = touchPanStartY + (e.touches[0].clientY - touchStartY);
+    clearTrails();
+    redrawTrace();
+  } else if(e.touches.length === 2){
+    const newDist = touchDist(e.touches);
+    const factor = newDist / pinchStartDist;
+    state.zoom = Math.min(6, Math.max(0.08, pinchStartZoom * factor));
+    clearTrails();
+    redrawTrace();
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchend', ()=>{
+  pinchStartDist = 0;
+  draggingWellIndex = -1;
+}, {passive:false});
+
+function handleOrientation(e){
+  if(e.beta === null || e.gamma === null) return;
+  state.gyro.beta += (e.beta - state.gyro.beta) * 0.08;
+  state.gyro.gamma += (e.gamma - state.gyro.gamma) * 0.08;
+}
+
+document.getElementById('toggle-gyro').addEventListener('change', async e=>{
+  if(e.target.checked){
+    if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+      try{
+        const res = await DeviceOrientationEvent.requestPermission();
+        if(res !== 'granted'){ e.target.checked = false; alert('Permiso denegado.'); return; }
+      } catch(err){ e.target.checked = false; alert('No se pudo pedir permiso.'); return; }
+    }
+    window.addEventListener('deviceorientation', handleOrientation);
+    state.gyro.enabled = true;
+  } else {
+    window.removeEventListener('deviceorientation', handleOrientation);
+    state.gyro.enabled = false;
+    state.gyro.beta = 0; state.gyro.gamma = 0;
+  }
+});
+
+function toggleFullscreenMode(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+  } else {
+    document.exitFullscreen();
+  }
+}
+document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreenMode);
+document.getElementById('quick-fullscreen').addEventListener('click', toggleFullscreenMode);
+
+document.getElementById('quick-gyro').addEventListener('click', ()=>{
+  const cb = document.getElementById('toggle-gyro');
+  cb.checked = !cb.checked;
+  cb.dispatchEvent(new Event('change'));
+});
+
+function syncQuickBar(){
+  document.getElementById('quick-gyro').classList.toggle('active', state.gyro.enabled);
+  document.getElementById('quick-fullscreen').classList.toggle('active', !!document.fullscreenElement);
+}
+
+const splashCanvas = document.getElementById('splash-canvas');
+const splashCtx = splashCanvas.getContext('2d');
+
+const COVER_ARM_COUNT = 9;
+const COVER_HUE = 174;
+function coverPalette(n){
+  const out = [];
+  for(let i=0; i<n; i++){
+    const t = i/(n-1);
+    const sat = 38 + t*57;
+    const light = 30 + t*30;
+    out.push(`hsl(${COVER_HUE},${sat.toFixed(0)}%,${light.toFixed(0)}%)`);
+  }
+  return out;
+}
+const COVER_PALETTE = coverPalette(COVER_ARM_COUNT);
+const COVER_LINKS = Array.from({length: COVER_ARM_COUNT}, (_, i) => baseLink({
+  radius: 5, speed: i+1, dir: 1, traceEnabled: true,
+  traceColor: COVER_PALETTE[i], _path: []
+}));
+let coverT = 0;
+let splashActive = true;
+
+function trimCover(arr){
+  if(arr.length > 900) arr.splice(0, arr.length - 600);
+}
+
+function drawSplashPreview(){
+  if(!splashActive) return;
+
+  splashCtx.fillStyle = '#030307';
+  splashCtx.fillRect(0,0,200,200);
+  splashCtx.fillStyle = '#00f0d6';
+  splashCtx.globalAlpha = 0.5;
+  for(let i=0; i<30; i++){
+    let sx = (Math.sin(i*99 + coverT)*100 + 100)%200;
+    let sy = (Math.cos(i*33)*100 + 100)%200;
+    splashCtx.fillRect(sx, sy, 1.5, 1.5);
+  }
+  splashCtx.globalAlpha = 1.0;
+
+  coverT += 0.02;
+  const puntos = calcularPuntos(coverT, COVER_LINKS);
+  for(let i = 1; i < puntos.length; i++){
+    const link = COVER_LINKS[i-1];
+    link._path.push(puntos[i]);
+    trimCover(link._path);
+  }
+  const tip = puntos[puntos.length - 1];
+
+  const cx=100, cy=100, s=85/(5*COVER_ARM_COUNT);
+  splashCtx.save();
+  splashCtx.translate(cx, cy);
+
+  for(let i = COVER_LINKS.length - 1; i >= 0; i--){
+    const link = COVER_LINKS[i];
+    if(link._path.length < 2) continue;
+    splashCtx.strokeStyle = link.traceColor;
+    splashCtx.lineWidth = 1.1;
+    splashCtx.beginPath();
+    splashCtx.moveTo(link._path[0].x*s, link._path[0].y*s);
+    for(let j=1; j<link._path.length; j++) splashCtx.lineTo(link._path[j].x*s, link._path[j].y*s);
+    splashCtx.stroke();
+  }
+  splashCtx.restore();
+  requestAnimationFrame(drawSplashPreview);
+}
+
+const DT = 0.01;
+const ANGLE_STEP_MAX = 0.15; 
+const MAX_SUBSTEPS = 8;      
+
+function computeSubsteps(velocidadEfectiva){
+  let maxOmega = 0;
+  for(const link of state.links) maxOmega = Math.max(maxOmega, Math.abs(link.speed));
+  const rawStep = maxOmega * velocidadEfectiva * DT;
+  const n = Math.ceil(rawStep / ANGLE_STEP_MAX);
+  return Math.min(MAX_SUBSTEPS, Math.max(1, n));
+}
+
+function advanceAxisAuto(dt){
+  const ax = state.axisAuto;
+  if(!ax.enabled) return;
+  const speed = 0.6;
+  const delta = speed * dt * ax.dir;
+  ax.angle += delta;
+  ax.turnsDone += Math.abs(delta) / (2*Math.PI);
+  const target = ax.dir === 1 ? ax.cwTurns : ax.ccwTurns;
+  if(ax.turnsDone >= target){
+    ax.turnsDone = 0;
+    ax.dir *= -1;
+  }
+}
+
+function renderLinesToTrail(puntos, s) {
+  trailCtx.save();
+  trailCtx.translate(W/2 + state.panX, H/2 + state.panY);
+  if(state.axisAuto.enabled) trailCtx.rotate(state.axisAuto.angle);
+
+  trailCtx.lineWidth = state.grosor * devicePixelRatio;
+  trailCtx.lineCap = 'round';
+  
+  for(let sym = 0; sym < state.symmetry; sym++){
+      trailCtx.save();
+      trailCtx.rotate((Math.PI * 2 / state.symmetry) * sym);
+      
+      for(let i=1; i<puntos.length; i++){
+        const link = state.links[i-1];
+        if(!link.traceEnabled) continue;
+        
+        if(link.lastPt) {
+            trailCtx.strokeStyle = link.traceColor;
+            trailCtx.beginPath();
+            trailCtx.moveTo(link.lastPt.x * s, link.lastPt.y * s);
+            trailCtx.lineTo(puntos[i].x * s, puntos[i].y * s);
+            trailCtx.stroke();
+        }
+      }
+      trailCtx.restore();
+  }
+  trailCtx.restore();
+  
+  for(let i=1; i<puntos.length; i++){
+    state.links[i-1].lastPt = {x: puntos[i].x, y: puntos[i].y};
+  }
+}
+
+function tick(){
+  syncQuickBar();
+  if(state.playing){
+    const velocidadEfectiva = state.velocidad;
+    const n = computeSubsteps(velocidadEfectiva);
+    let puntos;
+    const s = scale * state.zoom;
+
+    if(state.fadeAmount > 0) {
+        trailCtx.fillStyle = `rgba(0,0,0,${state.fadeAmount})`;
+        trailCtx.fillRect(0,0, trailCanvas.width, trailCanvas.height);
+    }
+
+    if(state.drawMode === 'gravedad'){
+      const subDt = (DT*velocidadEfectiva)/n;
+      for(let step=0; step<n; step++){
+          gravityStep(subDt);
+          state.t += subDt;
+          puntos = [{x:0,y:0}, ...state.links.map(l => ({x:l.gx, y:l.gy}))];
+          renderLinesToTrail(puntos, s);
+      }
+    } else {
+      const subDt = (DT*velocidadEfectiva)/n;
+      for(let step=0; step<n; step++){
+        state.t += subDt;
+        puntos = calcularPuntos(state.t);
+        for(let i=1; i<puntos.length; i++){
+          const link = state.links[i-1];
+          if(link.colorShift){
+            const hue = Math.round((((i*47) + state.t*40) % 360) / 8) * 8;
+            link.traceColor = `hsl(${hue},85%,60%)`;
+          }
+        }
+        renderLinesToTrail(puntos, s);
+      }
+    }
+
+    advanceAxisAuto(DT);
+    if(state.view3d.enabled) state.view3d.angle += DT * 0.5;
+
+    state.tip = (state.drawMode === 'gravedad') ? {x:0, y:0} : puntos[puntos.length-1];
+
+    const vueltas = state.t/(2*Math.PI);
+    if(state.autoPauseLaps > 0 && vueltas >= state.autoPauseLaps){
+      state.playing = false;
+      toggleBtn.textContent = 'Reanudar';
+    }
+
+    redrawTrace();
+    drawRig(puntos);
+    document.getElementById('r-vuelta').textContent = vueltas.toFixed(2);
+  }
+  document.getElementById('r-zoom').textContent = Math.round(state.zoom*100)+'%';
+  requestAnimationFrame(tick);
+}
+
+renderLinks();
+renderWells();
+resize();
+tick();
+drawSplashPreview();
+</script>
+</body>
+</html>
