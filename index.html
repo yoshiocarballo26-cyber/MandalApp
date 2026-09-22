@@ -30,55 +30,79 @@
     font-family:'Space Grotesk',sans-serif;overflow:hidden;}
 
   #splash-screen{
-    position:absolute;top:0;left:0;width:100vw;height:100vh;
-    background:radial-gradient(circle at 50% 50%, rgba(124,92,255,0.2) 0%, rgba(5,5,10,0.98) 70%), var(--bg);
-    z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:20px;transition:opacity 0.6s ease, visibility 0.6s ease;
+    position:absolute;inset:0;width:100vw;height:100vh;overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 55%, rgba(124,92,255,.20) 0%, rgba(5,5,10,.12) 28%, rgba(5,5,10,.96) 78%),
+      radial-gradient(circle at 15% 35%, rgba(0,240,214,.10), transparent 28%),
+      radial-gradient(circle at 85% 65%, rgba(255,63,180,.10), transparent 28%),
+      var(--bg);
+    z-index:100;display:flex;align-items:center;justify-content:center;
+    padding:16px;transition:opacity .6s ease,visibility .6s ease;
   }
   #splash-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
   
   .splash-container{
-    width:100%;max-width:700px;background:rgba(13,13,22,0.85);
-    border:1px solid var(--line);border-radius:8px;padding:35px;
-    box-shadow:0 20px 50px rgba(0,0,0,0.9), 0 0 40px rgba(124,92,255,0.15);
-    display:flex;flex-direction:column;align-items:center;text-align:center;
-    backdrop-filter:blur(12px);position:relative;overflow:hidden;
+    width:100%;height:100%;max-width:1100px;position:relative;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    padding:18px 22px 24px;text-align:center;overflow:hidden;
   }
-  
-  .splash-preview-canvas{
-    width:100%;height:100%;display:block;border-radius:50%;background:#030307;
+  .splash-top{
+    width:100%;display:flex;align-items:center;justify-content:center;position:relative;z-index:4;
+    min-height:56px;
   }
-  .splash-brand{font-size:30px;font-weight:700;letter-spacing:.02em;margin-bottom:14px;}
-  .splash-brand em{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-weight:400;}
+  .splash-logo{
+    font-size:clamp(24px,4vw,40px);font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;text-shadow:0 0 18px rgba(0,240,214,.25);
+  }
+  .splash-logo em{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-weight:400;}
+  .splash-menu-toggle{
+    position:absolute;left:0;top:0;width:46px;height:46px;border:1px solid rgba(0,240,214,.35);
+    border-radius:12px;background:rgba(5,5,10,.58);color:var(--cyan);font-size:24px;
+    cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 0 20px rgba(0,240,214,.08);
+  }
+  .splash-menu-toggle:hover{border-color:var(--cyan);box-shadow:0 0 24px rgba(0,240,214,.22);}
+  .splash-settings{
+    position:absolute;right:0;top:0;width:46px;height:46px;border:1px solid rgba(0,240,214,.35);
+    border-radius:12px;background:rgba(5,5,10,.58);color:var(--cyan);font-size:22px;
+    cursor:pointer;backdrop-filter:blur(8px);
+  }
+  .splash-menu-toggle span{display:block;line-height:1;}
+  .splash-hero-copy{position:relative;z-index:3;margin-top:clamp(16px,3vh,34px);}
+  .splash-kicker{
+    font-family:'IBM Plex Mono',monospace;font-size:clamp(11px,1.5vw,14px);letter-spacing:.24em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:6px;
+  }
+  .splash-headline{
+    margin:0;font-size:clamp(28px,5.2vw,64px);line-height:.98;font-weight:700;
+    letter-spacing:.03em;text-transform:uppercase;
+    background:linear-gradient(90deg,#ffd76a 0%,#00f0d6 38%,#7c5cff 70%,#ff3fb4 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 12px rgba(0,240,214,.18));
+  }
+  .splash-touch{
+    margin:10px 0 0;font-family:'Cormorant Garamond',serif;font-style:italic;
+    color:#ffd76a;font-size:clamp(25px,4vw,48px);line-height:1.05;
+    text-shadow:0 0 16px rgba(255,215,106,.22);
+  }
+  .splash-subline{margin:5px 0 0;color:#dfefff;font-size:clamp(12px,1.6vw,18px);}
   .mandala-launch{
-    position:relative;width:min(72vw,520px);height:min(72vw,520px);max-width:520px;max-height:520px;
-    min-width:260px;min-height:260px;border:0;border-radius:50%;padding:0;cursor:pointer;
-    background:#030307;box-shadow:0 0 28px rgba(0,240,214,.28),0 0 80px rgba(124,92,255,.18);
-    overflow:hidden;transition:transform .25s ease,box-shadow .25s ease;
+    position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);
+    width:min(68vh,70vw,610px);height:min(68vh,70vw,610px);
+    border:0;border-radius:50%;padding:0;cursor:pointer;background:transparent;overflow:hidden;
+    z-index:2;box-shadow:0 0 34px rgba(0,240,214,.18),0 0 100px rgba(124,92,255,.16);
+    transition:transform .25s ease,filter .25s ease;
   }
-  .mandala-launch:hover{transform:scale(1.025);box-shadow:0 0 38px rgba(0,240,214,.42),0 0 100px rgba(124,92,255,.25);}
-  .mandala-launch:active{transform:scale(.985);}
-  .mandala-launch-copy{
-    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:28px;text-align:center;background:radial-gradient(circle,rgba(5,5,10,.08),rgba(5,5,10,.38));
-    text-shadow:0 2px 12px #000;pointer-events:none;
+  .mandala-launch:hover{transform:translate(-50%,-50%) scale(1.025);filter:brightness(1.08);}
+  .mandala-launch:active{transform:translate(-50%,-50%) scale(.985);}
+  .mandala-svg{width:100%;height:100%;display:block;}
+  .splash-menu-drawer{
+    position:absolute;left:18px;top:72px;width:min(300px,calc(100vw - 36px));z-index:20;
+    padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(13,13,22,.94);
+    backdrop-filter:blur(16px);box-shadow:0 18px 50px rgba(0,0,0,.65);
+    display:none;flex-direction:column;gap:8px;text-align:left;
   }
-  .mandala-launch-copy strong{font-size:clamp(20px,4vw,32px);letter-spacing:.01em;}
-  .mandala-launch-copy small{margin-top:8px;color:#fff;font-size:clamp(11px,2vw,14px);letter-spacing:.04em;}
-
-  .splash-title{font-size:34px;font-weight:700;letter-spacing:0.02em;margin:0 0 6px;}
-  .splash-title em{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-weight:400;}
-  .splash-subtitle{color:var(--ink-dim);font-size:13.5px;line-height:1.6;margin-bottom:25px;max-width:480px;}
-
-  .splash-menu{display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px;}
-  .splash-btn{
-    font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.1em;
-    text-transform:uppercase;background:transparent;border:1px solid var(--line);
-    color:var(--ink);padding:14px;border-radius:4px;cursor:pointer;transition:all .2s;
-  }
-  .splash-btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,240,214,0.05);}
-  .splash-btn.primary{border-color:var(--magenta);color:var(--magenta);background:rgba(255,63,180,0.12);font-weight:700;}
-  .splash-btn.primary:hover{background:rgba(255,63,180,0.25);box-shadow:0 0 20px rgba(255,63,180,0.5);}
+  .splash-menu-drawer.open{display:flex;}
+  .splash-menu-drawer .splash-btn{width:100%;}
   .splash-donate{margin-top:22px;padding-top:16px;border-top:1px dashed var(--line);max-width:420px;}
   .splash-donate p{margin:0;color:var(--ink-dim);font-size:11px;line-height:1.6;}
 
@@ -316,16 +340,76 @@
 
 <div id="splash-screen">
   <div class="splash-container">
-    <div class="splash-brand">Mandal<em>App</em></div>
+    <div class="splash-top">
+      <button class="splash-menu-toggle" id="splash-menu-toggle" aria-label="Abrir menú"><span>☰</span></button>
+      <div class="splash-logo">MANDAL<em>APP</em></div>
+      <button class="splash-settings" id="splash-settings" aria-label="Configuración">⚙</button>
+    </div>
+
+    <div class="splash-hero-copy">
+      <div class="splash-kicker">Pon a prueba tu</div>
+      <h1 class="splash-headline">IMAGINACIÓN</h1>
+      <div class="splash-touch">Tócame.</div>
+      <p class="splash-subline">Tu imaginación no tiene límites.</p>
+    </div>
+
     <button class="mandala-launch" id="btn-start-app" aria-label="Pon a prueba tu imaginación">
-      <canvas id="splash-canvas" class="splash-preview-canvas" width="520" height="520"></canvas>
-      <span class="mandala-launch-copy">
-        <strong>Pon a prueba tu imaginación</strong>
-        <small>Tócame. Tu imaginación no tiene límites.</small>
-      </span>
+      <svg class="mandala-svg" viewBox="0 0 600 600" role="img" aria-label="Mandala interactivo">
+        <defs>
+          <radialGradient id="mBg"><stop offset="0" stop-color="#11152b"/><stop offset=".62" stop-color="#070914"/><stop offset="1" stop-color="#020207"/></radialGradient>
+          <linearGradient id="mCyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#00f0d6"/><stop offset="1" stop-color="#39a8ff"/></linearGradient>
+          <linearGradient id="mPink" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff3fb4"/><stop offset="1" stop-color="#7c5cff"/></linearGradient>
+          <linearGradient id="mGold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a0"/><stop offset=".5" stop-color="#d9b45c"/><stop offset="1" stop-color="#ff8f2f"/></linearGradient>
+          <filter id="mGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle cx="300" cy="300" r="286" fill="url(#mBg)" stroke="#00f0d6" stroke-width="3" opacity=".96"/>
+        <g fill="none" stroke="url(#mCyan)" opacity=".8" filter="url(#mGlow)">
+          <circle cx="300" cy="300" r="268" stroke-width="2"/><circle cx="300" cy="300" r="250" stroke-width="1.5"/>
+          <circle cx="300" cy="300" r="224" stroke-width="2"/><circle cx="300" cy="300" r="196" stroke-width="1"/>
+        </g>
+        <g transform="translate(300 300)">
+          <g transform="rotate(0)">
+            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
+            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
+            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
+          </g><g transform="rotate(45)">
+            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
+            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
+            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
+          </g><g transform="rotate(90)">
+            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
+            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
+            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
+          </g><g transform="rotate(135)">
+            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
+            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
+            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
+          </g><g transform="rotate(180)">
+            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
+            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
+            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
+          </g><g transform="rotate(225)">
+            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
+            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
+            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
+          </g><g transform="rotate(270)">
+            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
+            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
+            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
+          </g><g transform="rotate(315)">
+            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
+            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
+            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
+          </g>
+          <circle r="92" fill="#070914" stroke="url(#mGold)" stroke-width="7"/>
+          <circle r="66" fill="url(#mPink)" stroke="url(#mCyan)" stroke-width="4"/>
+          <circle r="40" fill="#ffd76a" stroke="#fff4b0" stroke-width="3" filter="url(#mGlow)"/>
+          <circle r="20" fill="#fff8d2"/>
+        </g>
+      </svg>
     </button>
-    
-    <div class="splash-menu">
+
+    <div class="splash-menu-drawer" id="splash-menu-drawer">
       <button class="splash-btn" id="btn-open-gallery">Galería</button>
       <button class="splash-btn" id="btn-open-whatsapp">📱 WhatsApp</button>
       <button class="splash-btn" id="btn-open-discussions">💬 Discusiones</button>
@@ -1245,6 +1329,16 @@ document.getElementById('btn-save').addEventListener('click', ()=>{
 });
 
 const splashScreen = document.getElementById('splash-screen');
+const splashMenuDrawer = document.getElementById('splash-menu-drawer');
+document.getElementById('splash-menu-toggle').addEventListener('click', ()=>{
+  splashMenuDrawer.classList.toggle('open');
+});
+document.getElementById('splash-settings').addEventListener('click', ()=> settingsModal.classList.add('active'));
+document.addEventListener('click', e=>{
+  if(!splashMenuDrawer.contains(e.target) && !e.target.closest('#splash-menu-toggle')){
+    splashMenuDrawer.classList.remove('open');
+  }
+});
 document.getElementById('btn-start-app').addEventListener('click', ()=>{
   splashScreen.classList.add('hidden');
   splashActive = false;
