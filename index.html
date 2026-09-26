@@ -746,6 +746,7 @@ const state = {
   view3d: { enabled: false, angle: 0 },
   gravity: { wells: [{ mass: 40, x: 0, y: 0 }], mutual: false },
   gyro: { enabled: false, beta: 0, gamma: 0 },
+  settings: { lang: 'es' },
   axisAuto: { enabled: false, cwTurns: 10, ccwTurns: 20, dir: 1, turnsDone: 0, angle: 0 }
 };
 
@@ -791,6 +792,63 @@ function drawCosmicBackground(){
   });
   ctx.restore();
   ctx.globalAlpha = 1.0;
+}
+
+/* ---- FUNCIONES DE LIENZO / TRAZO (antes faltantes) ---- */
+function clearTrails(){
+  trailCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  trailCtx.clearRect(0,0,W,H);
+  state.links.forEach(l => l.lastPt = null);
+}
+
+function redrawTrace(){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  drawCosmicBackground();
+  ctx.restore();
+  ctx.drawImage(trailCanvas, 0, 0);
+}
+
+function resetTrace(){
+  state.t = 0;
+  state.links.forEach(l => l.lastPt = null);
+  if(state.drawMode === 'gravedad') initGravityBodies();
+  clearTrails();
+  redrawTrace();
+}
+
+function resetView(){
+  state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
+  clearTrails();
+  redrawTrace();
+}
+
+function drawRig(puntos){
+  rigCtx.clearRect(0,0,150,150);
+  if(!puntos || puntos.length < 2) return;
+  rigCtx.save();
+  rigCtx.translate(75,75);
+  const totalR = state.links.reduce((a,l)=>a+l.radius,0) || 1;
+  const fitScale = 55 / totalR;
+  rigCtx.strokeStyle = 'rgba(0,240,214,0.35)';
+  rigCtx.lineWidth = 1;
+  for(let i=1;i<puntos.length;i++){
+    const prev = puntos[i-1], cur = puntos[i];
+    const r = Math.hypot(cur.x-prev.x, cur.y-prev.y) * fitScale;
+    rigCtx.beginPath();
+    rigCtx.arc(prev.x*fitScale, prev.y*fitScale, r, 0, Math.PI*2);
+    rigCtx.stroke();
+  }
+  const tip = puntos[puntos.length-1];
+  rigCtx.fillStyle = '#ff3fb4';
+  rigCtx.beginPath();
+  rigCtx.arc(tip.x*fitScale, tip.y*fitScale, 3, 0, Math.PI*2);
+  rigCtx.fill();
+  rigCtx.restore();
 }
 
 function calcularPuntos(t, links, mode){
@@ -1547,6 +1605,7 @@ const splashCanvas = document.getElementById('splash-canvas');
 const splashCtx = splashCanvas.getContext('2d');
 
 const COVER_ARM_COUNT = 12;
+const COVER_SYMMETRY = 12;
 const splashMandalaGroup = document.getElementById('splash-generated-mandala');
 
 function buildSplashMandala(){
@@ -1658,7 +1717,7 @@ function drawSplashPreview(){
   }
   const tip = puntos[puntos.length - 1];
 
-  const cx=100, cy=100, s=85/(5*COVER_ARM_COUNT);
+  const cx=100, cy=100, s=85/(5*COVER_PREVIEW_ARM_COUNT);
   splashCtx.save();
   splashCtx.translate(cx, cy);
 
