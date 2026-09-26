@@ -67,7 +67,7 @@
     cursor:pointer;backdrop-filter:blur(8px);
   }
   .splash-menu-toggle span{display:block;line-height:1;}
-  .splash-hero-copy{position:relative;z-index:3;margin-top:clamp(16px,3vh,34px);}
+  .splash-hero-copy{position:relative;z-index:3;pointer-events:none;margin-top:clamp(16px,3vh,34px);}
   .splash-kicker{
     font-family:'IBM Plex Mono',monospace;font-size:clamp(11px,1.5vw,14px);letter-spacing:.24em;
     text-transform:uppercase;color:var(--gold);margin-bottom:6px;
@@ -85,7 +85,7 @@
     text-shadow:0 0 16px rgba(255,215,106,.22);
   }
   .splash-subline{margin:5px 0 0;color:#dfefff;font-size:clamp(12px,1.6vw,18px);}
-  .mandala-launch{
+  .mandala-launch{pointer-events:auto;touch-action:manipulation;
     position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);
     width:min(68vh,70vw,610px);height:min(68vh,70vw,610px);
     border:0;border-radius:50%;padding:0;cursor:pointer;background:transparent;overflow:hidden;
@@ -375,52 +375,10 @@
           <linearGradient id="mCyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#00f0d6"/><stop offset="1" stop-color="#39a8ff"/></linearGradient>
           <linearGradient id="mPink" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff3fb4"/><stop offset="1" stop-color="#7c5cff"/></linearGradient>
           <linearGradient id="mGold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a0"/><stop offset=".5" stop-color="#d9b45c"/><stop offset="1" stop-color="#ff8f2f"/></linearGradient>
-          <filter id="mGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="mGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         </defs>
         <circle cx="300" cy="300" r="286" fill="url(#mBg)" stroke="#00f0d6" stroke-width="3" opacity=".96"/>
-        <g fill="none" stroke="url(#mCyan)" opacity=".8" filter="url(#mGlow)">
-          <circle cx="300" cy="300" r="268" stroke-width="2"/><circle cx="300" cy="300" r="250" stroke-width="1.5"/>
-          <circle cx="300" cy="300" r="224" stroke-width="2"/><circle cx="300" cy="300" r="196" stroke-width="1"/>
-        </g>
-        <g transform="translate(300 300)">
-          <g transform="rotate(0)">
-            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
-            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
-            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
-          </g><g transform="rotate(45)">
-            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
-            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
-            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
-          </g><g transform="rotate(90)">
-            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
-            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
-            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
-          </g><g transform="rotate(135)">
-            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
-            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
-            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
-          </g><g transform="rotate(180)">
-            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
-            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
-            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
-          </g><g transform="rotate(225)">
-            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
-            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
-            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
-          </g><g transform="rotate(270)">
-            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
-            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
-            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
-          </g><g transform="rotate(315)">
-            <path d="M0,-24 C-72,-58 -112,-128 -92,-194 C-40,-176 -12,-132 0,-78 C12,-132 40,-176 92,-194 C112,-128 72,-58 0,-24Z" fill="url(#mPink)" stroke="url(#mGold)" stroke-width="4"/>
-            <path d="M0,-52 C-38,-82 -50,-126 -35,-160 C-12,-143 -3,-112 0,-78 C3,-112 12,-143 35,-160 C50,-126 38,-82 0,-52Z" fill="url(#mCyan)" opacity=".88"/>
-            <circle cx="0" cy="-218" r="7" fill="#ffd76a"/>
-          </g>
-          <circle r="92" fill="#070914" stroke="url(#mGold)" stroke-width="7"/>
-          <circle r="66" fill="url(#mPink)" stroke="url(#mCyan)" stroke-width="4"/>
-          <circle r="40" fill="#ffd76a" stroke="#fff4b0" stroke-width="3" filter="url(#mGlow)"/>
-          <circle r="20" fill="#fff8d2"/>
-        </g>
+        <g id="splash-generated-mandala"></g>
       </svg>
     </button>
 
@@ -783,7 +741,7 @@ const state = {
   starCount: 120,
   autoPauseLaps: 0,
   drawMode: 'cadena',
-  symmetry: 1,
+  symmetry: 12,
   fadeAmount: 0,
   view3d: { enabled: false, angle: 0 },
   gravity: { wells: [{ mass: 40, x: 0, y: 0 }], mutual: false },
@@ -1224,7 +1182,10 @@ document.getElementById('btn-random').addEventListener('click', ()=>{
   }));
   state.color = PALETTE[Math.floor(Math.random()*PALETTE.length)];
   document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active', s.dataset.color===state.color));
-  document.getElementById('r-algoritmo').textContent = 'PERSONALIZADO'; 
+  document.getElementById('r-algoritmo').textContent = 'ALEATORIO · 12 EJES';
+  state.symmetry = 12;
+  const symmetrySelect = document.getElementById('select-symmetry');
+  if(symmetrySelect) symmetrySelect.value = '12';
   renderLinks(); resetTrace();
 });
 
@@ -1257,12 +1218,19 @@ document.addEventListener('click', e=>{
     splashMenuDrawer.classList.remove('open');
   }
 });
-document.getElementById('btn-start-app').addEventListener('click', ()=>{
+function startMandalApp(e){
+  if(e) e.preventDefault();
+  if(!splashActive) return;
   splashScreen.classList.add('hidden');
   splashActive = false;
   state.playing = true;
   toggleBtn.textContent = 'Pausar';
-});
+}
+
+const startButton = document.getElementById('btn-start-app');
+startButton.addEventListener('click', startMandalApp);
+startButton.addEventListener('pointerup', startMandalApp);
+startButton.addEventListener('touchend', startMandalApp, {passive:false});
 
 const settingsModal = document.getElementById('settings-modal');
 const legalModal = document.getElementById('legal-modal');
@@ -1578,6 +1546,72 @@ function syncQuickBar(){
 const splashCanvas = document.getElementById('splash-canvas');
 const splashCtx = splashCanvas.getContext('2d');
 
+const COVER_ARM_COUNT = 12;
+const COVER_SYMMETRY = 12;
+const splashMandalaGroup = document.getElementById('splash-generated-mandala');
+
+function buildSplashMandala(){
+  if(!splashMandalaGroup) return;
+  splashMandalaGroup.innerHTML = '';
+
+  const colors = ['#00f0d6','#7c5cff','#ff3fb4','#d9b45c','#39a8ff','#ffffff'];
+  const params = Array.from({length: 5}, (_, i) => ({
+    r: 34 + i * 27 + Math.random()*10,
+    speed: 0.8 + Math.random()*3.8,
+    phase: Math.random()*Math.PI*2,
+    color: colors[i % colors.length]
+  }));
+
+  const rings = document.createElementNS('http://www.w3.org/2000/svg','g');
+  rings.setAttribute('fill','none');
+  rings.setAttribute('opacity','0.9');
+
+  for(let axis=0; axis<COVER_SYMMETRY; axis++){
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('transform', `rotate(${axis * (360/COVER_SYMMETRY)} 300 300)`);
+    params.forEach((p, i) => {
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const y = 300 - p.r - i*4;
+      path.setAttribute('d', `M300 300 C${300-p.r*.72} ${y+35} ${300-p.r*.38} ${y-24} 300 ${y-58} C${300+p.r*.38} ${y-24} ${300+p.r*.72} ${y+35} 300 300Z`);
+      path.setAttribute('stroke', p.color);
+      path.setAttribute('stroke-width', i===0 ? '3' : '1.5');
+      path.setAttribute('opacity', String(0.35 + (i/params.length)*0.55));
+      g.appendChild(path);
+    });
+    rings.appendChild(g);
+  }
+
+  const center = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  center.setAttribute('cx','300'); center.setAttribute('cy','300'); center.setAttribute('r','10');
+  center.setAttribute('fill','#ffd76a');
+  center.setAttribute('filter','url(#mGlow)');
+  rings.appendChild(center);
+
+  splashMandalaGroup.appendChild(rings);
+  splashMandalaGroup.dataset.rotation = '0';
+  return {rings, params};
+}
+
+let splashGenerated = buildSplashMandala();
+let splashGeneratedT = 0;
+
+function animateSplashMandala(){
+  if(!splashActive || !splashGenerated) return;
+  splashGeneratedT += 0.018;
+  const rotation = splashGeneratedT * 14;
+  splashGenerated.rings.setAttribute('transform', `rotate(${rotation} 300 300)`);
+
+  splashGenerated.params.forEach((p, i) => {
+    const wave = Math.sin(splashGeneratedT * p.speed + p.phase) * 5;
+    const paths = splashGenerated.rings.querySelectorAll('path');
+    for(let axis=0; axis<COVER_SYMMETRY; axis++){
+      const path = paths[axis * splashGenerated.params.length + i];
+      if(path) path.setAttribute('transform', `translate(0 ${wave})`);
+    }
+  });
+  requestAnimationFrame(animateSplashMandala);
+}
+
 const COVER_ARM_COUNT = 9;
 const COVER_HUE = 174;
 function coverPalette(n){
@@ -1763,6 +1797,7 @@ renderWells();
 resize();
 tick();
 drawSplashPreview();
+animateSplashMandala();
 </script>
 </body>
 </html>
