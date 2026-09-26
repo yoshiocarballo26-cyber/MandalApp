@@ -1611,7 +1611,7 @@ function animateSplashMandala(){
   requestAnimationFrame(animateSplashMandala);
 }
 
-const COVER_ARM_COUNT = 9;
+const COVER_PREVIEW_ARM_COUNT = 9;
 const COVER_HUE = 174;
 function coverPalette(n){
   const out = [];
@@ -1623,8 +1623,8 @@ function coverPalette(n){
   }
   return out;
 }
-const COVER_PALETTE = coverPalette(COVER_ARM_COUNT);
-const COVER_LINKS = Array.from({length: COVER_ARM_COUNT}, (_, i) => baseLink({
+const COVER_PALETTE = coverPalette(COVER_PREVIEW_ARM_COUNT);
+const COVER_LINKS = Array.from({length: COVER_PREVIEW_ARM_COUNT}, (_, i) => baseLink({
   radius: 5, speed: i+1, dir: 1, traceEnabled: true,
   traceColor: COVER_PALETTE[i], _path: []
 }));
