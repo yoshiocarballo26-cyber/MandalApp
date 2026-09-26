@@ -324,15 +324,29 @@
     font-size:10px;color:var(--ink-dim);opacity:.6;letter-spacing:.03em;}
 
   @media (max-width:820px){
-    #splash-screen{padding:12px;}
-    .splash-container{max-width:none;width:100%;padding:18px 10px;background:rgba(13,13,22,.72);border-radius:10px;}
-    .splash-brand{font-size:24px;margin-bottom:8px;}
-    .mandala-launch{width:min(88vw,520px);height:min(88vw,520px);min-width:220px;min-height:220px;}
-    .splash-menu{max-width:260px;gap:8px;}
-
-    #app{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
-    #panel{border-right:none;border-bottom:1px solid var(--line);max-height:55vh;}
+    html,body{height:100%;height:100dvh;}
+    #splash-screen{height:100dvh;min-height:100dvh;padding:10px;}
+    .splash-container{max-width:none;width:100%;height:100%;padding:14px 10px;background:rgba(13,13,22,.72);border-radius:12px;}
+    .splash-hero-copy{margin-top:clamp(10px,2vh,22px);}
+    .splash-touch{font-size:clamp(22px,6vw,36px);}
+    .splash-subline{font-size:clamp(11px,3.2vw,15px);}
+    .mandala-launch{width:min(82vw,58vh,520px);height:min(82vw,58vh,520px);min-width:210px;min-height:210px;top:56%;}
+    .splash-menu-drawer{top:62px;left:10px;width:min(280px,calc(100vw - 20px));}
+    #app{grid-template-columns:1fr;grid-template-rows:minmax(0,44dvh) minmax(0,56dvh);height:100dvh;min-height:100dvh;}
+    #panel{border-right:none;border-bottom:1px solid var(--line);max-height:none;min-height:0;padding:18px 14px;gap:16px;}
+    #stage{min-height:0;width:100%;height:100%;}
+    #readout{top:12px;left:12px;font-size:9px;}
+    #view-hint{bottom:12px;left:12px;font-size:9px;}
+    #quick-bar{top:10px;left:10px;}
+    #gear-btn{top:10px;right:10px;}
     #rig{display:none;}
+  }
+  @media (max-width:480px){
+    .splash-headline{font-size:clamp(25px,9vw,42px);}
+    .splash-kicker{font-size:10px;letter-spacing:.16em;}
+    .splash-top{min-height:48px;}
+    .splash-menu-toggle,.splash-settings{width:40px;height:40px;font-size:20px;}
+    #app{grid-template-rows:minmax(0,40dvh) minmax(0,60dvh);}
   }
 </style>
 </head>
@@ -347,12 +361,10 @@
       <button class="splash-settings" id="splash-settings" aria-label="Configuración">⚙</button>
     </div>
 
-    <canvas id="splash-canvas" width="200" height="200" style="display:none" aria-hidden="true"></canvas>
-
     <div class="splash-hero-copy">
       <div class="splash-kicker">Pon a prueba tu</div>
       <h1 class="splash-headline">IMAGINACIÓN</h1>
-      <div class="splash-touch">Tócame.</div>
+      <div class="splash-touch">Toca la mandala.</div>
       <p class="splash-subline">Tu imaginación no tiene límites.</p>
     </div>
 
@@ -848,17 +860,20 @@ function calcularPuntos(t, links, mode){
   return puntos;
 }
 
-const GRAV_SOFTENING = 0.35;
-const GRAV_ESCAPE_DIST = 40;
-const GRAV_MUTUAL_FACTOR = 0.35;
+const GRAV_SOFTENING = 0.75;
+const GRAV_ESCAPE_DIST = 70;
+const GRAV_MUTUAL_FACTOR = 0.12;
+const GRAV_MAX_ACCEL = 8;
+const GRAV_MAX_SPEED = 9;
+const GRAV_DAMPING = 0.999;
 
 function initGravityBody(link, angle){
-  const r = Math.max(0.6, link.radius);
+  const r = Math.max(2.5, Math.min(24, link.radius * 2.2));
   const ref = state.gravity.wells[0] || {mass:40, x:0, y:0};
   link.gx = ref.x + r*Math.cos(angle);
   link.gy = ref.y + r*Math.sin(angle);
-  const totalMass = state.gravity.wells.reduce((s,w)=>s+w.mass, 0);
-  const vCirc = Math.sqrt(totalMass / r) * (link.speed / 5);
+  const primaryMass = Math.max(5, ref.mass);
+  const vCirc = Math.sqrt(primaryMass / r) * (0.72 + Math.min(0.55, link.speed / 10));
   const tx = -Math.sin(angle), ty = Math.cos(angle);
   link.gvx = tx * vCirc * link.dir;
   link.gvy = ty * vCirc * link.dir;
@@ -873,12 +888,13 @@ function gravityStep(dt){
   const links = state.links;
   const n = links.length;
   const wells = state.gravity.wells;
+  if(!wells.length) return;
   const ax = new Array(n).fill(0), ay = new Array(n).fill(0);
 
   links.forEach((p, i) => {
     for(const well of wells){
       const dx = well.x - p.gx, dy = well.y - p.gy;
-      const r2 = dx*dx + dy*dy + GRAV_SOFTENING;
+      const r2 = Math.max(GRAV_SOFTENING, dx*dx + dy*dy + GRAV_SOFTENING);
       const r = Math.sqrt(r2);
       const a = well.mass / r2;
       ax[i] += a * (dx / r);
@@ -886,14 +902,14 @@ function gravityStep(dt){
     }
   });
 
-  if(state.gravity.mutual){
+  if(state.gravity.mutual && n > 1){
     const totalMass = wells.reduce((s,w)=>s+w.mass, 0);
     const mutualMass = totalMass * GRAV_MUTUAL_FACTOR;
     for(let i=0; i<n; i++){
       for(let j=0; j<n; j++){
         if(i===j) continue;
         const dx = links[j].gx - links[i].gx, dy = links[j].gy - links[i].gy;
-        const r2 = dx*dx + dy*dy + GRAV_SOFTENING;
+        const r2 = Math.max(GRAV_SOFTENING, dx*dx + dy*dy + GRAV_SOFTENING);
         const r = Math.sqrt(r2);
         const a = mutualMass / r2;
         ax[i] += a * (dx / r);
@@ -903,132 +919,28 @@ function gravityStep(dt){
   }
 
   links.forEach((p, i) => {
-    p.gvx += ax[i]*dt; p.gvy += ay[i]*dt;
-    p.gx += p.gvx*dt;  p.gy += p.gvy*dt;
+    const accel = Math.hypot(ax[i], ay[i]);
+    if(accel > GRAV_MAX_ACCEL){
+      const k = GRAV_MAX_ACCEL / accel;
+      ax[i] *= k; ay[i] *= k;
+    }
+    p.gvx = (p.gvx + ax[i]*dt) * GRAV_DAMPING;
+    p.gvy = (p.gvy + ay[i]*dt) * GRAV_DAMPING;
+    const speed = Math.hypot(p.gvx, p.gvy);
+    if(speed > GRAV_MAX_SPEED){
+      const k = GRAV_MAX_SPEED / speed;
+      p.gvx *= k; p.gvy *= k;
+    }
+    p.gx += p.gvx*dt;
+    p.gy += p.gvy*dt;
   });
 
   links.forEach((p, i) => {
     const minDist = Math.min(...wells.map(w => Math.hypot(p.gx-w.x, p.gy-w.y)));
-    if(!isFinite(minDist) || minDist > GRAV_ESCAPE_DIST) initGravityBody(p, (i/n)*Math.PI*2 + Math.random());
+    if(!isFinite(minDist) || minDist > GRAV_ESCAPE_DIST){
+      initGravityBody(p, (i/n)*Math.PI*2 + Math.random()*0.08);
+    }
   });
-}
-
-function clearTrails() {
-  trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
-  state.links.forEach(l => l.lastPt = null);
-}
-
-function redrawTrace(){
-  // Limpiamos y escalamos a la densidad de píxeles correcta
-  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-  
-  // El fondo se dibuja plano SIEMPRE (No afectado por 3D)
-  drawCosmicBackground();
-
-  const s = scale * state.zoom;
-
-  ctx.save();
-  // Trasladamos el contexto virtualmente al centro de la pantalla
-  ctx.translate(W/2 + state.panX, H/2 + state.panY);
-
-  // APLICAMOS 3D MATEMÁTICO (Solo al Mandala)
-  if(state.gyro.enabled){
-    const tiltRot = (state.gyro.gamma / 90) * 0.35;
-    ctx.rotate(tiltRot);
-    const tiltSquash = 1 - Math.min(0.5, Math.abs(state.gyro.beta) / 180);
-    ctx.scale(1, Math.max(0.1, tiltSquash));
-  } else if(state.view3d.enabled){
-    const squash = 0.35 + 0.65*Math.abs(Math.cos(state.view3d.angle));
-    ctx.scale(1, Math.max(0.1, squash));
-  }
-
-  // Dibujamos el lienzo virtual retrocediendo el centro
-  // Esto permite que el squash del 3D se aplique perfecto desde el medio.
-  ctx.drawImage(trailCanvas, -(W/2 + state.panX), -(H/2 + state.panY), W, H);
-
-  // Rotamos para los cuerpos y astros dinámicos (que no se guardan en el trail)
-  if(state.axisAuto.enabled) ctx.rotate(state.axisAuto.angle);
-
-  if(state.drawMode === 'gravedad'){
-    for(let wi=1; wi<state.gravity.wells.length; wi++){
-      const w = state.gravity.wells[wi];
-      const wp = {x:w.x*s, y:w.y*s};
-      const rOuter = Math.max(5, state.grosor*4*Math.sqrt(w.mass/40)), rInner = rOuter*0.55;
-      ctx.beginPath();
-      ctx.arc(wp.x, wp.y, rOuter, 0, Math.PI*2);
-      ctx.strokeStyle = `hsl(174,90%,65%)`;
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(wp.x, wp.y, rInner, 0, Math.PI*2);
-      ctx.fillStyle = '#000000';
-      ctx.fill();
-    }
-    for(const link of state.links){
-      if(link.gx === undefined) continue;
-      const px = link.gx*s, py = link.gy*s;
-      ctx.fillStyle = link.traceColor;
-      ctx.beginPath();
-      ctx.arc(px, py, Math.max(1.5, link.planetSize), 0, Math.PI*2);
-      ctx.fill();
-    }
-  }
-
-  if(state.tip){
-    const p = {x: state.tip.x*s, y: state.tip.y*s};
-    if(state.drawMode === 'gravedad'){
-      const rOuter = Math.max(6, state.grosor*4), rInner = rOuter*0.55;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, rOuter, 0, Math.PI*2);
-      ctx.strokeStyle = `hsl(174,90%,65%)`;
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, rInner, 0, Math.PI*2);
-      ctx.fillStyle = '#000000';
-      ctx.fill();
-    } else {
-      ctx.fillStyle = state.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, Math.max(2.2, state.grosor*1.6), 0, Math.PI*2);
-      ctx.fill();
-    }
-  }
-
-  ctx.restore();
-}
-
-function drawRig(puntos){
-  rigCtx.clearRect(0,0,150,150);
-  const cx=75, cy=75, s=8;
-  rigCtx.strokeStyle = 'rgba(232,230,240,0.35)'; rigCtx.lineWidth = 1;
-  if(state.drawMode === 'gravedad'){
-    puntos.slice(1).forEach(pt => {
-      rigCtx.beginPath(); rigCtx.moveTo(cx, cy); rigCtx.lineTo(cx+pt.x*s, cy+pt.y*s); rigCtx.stroke();
-    });
-  } else {
-    rigCtx.beginPath(); rigCtx.moveTo(cx,cy);
-    puntos.forEach(pt => rigCtx.lineTo(cx+pt.x*s, cy+pt.y*s));
-    rigCtx.stroke();
-  }
-  puntos.forEach((pt,i)=>{
-    rigCtx.beginPath(); rigCtx.arc(cx+pt.x*s, cy+pt.y*s, 2, 0, Math.PI*2);
-    rigCtx.fillStyle = (i === puntos.length-1) ? state.color : '#00f0d6';
-    rigCtx.fill();
-  });
-}
-
-function resetTrace(){
-  state.tip = null;
-  state.t = 0;
-  clearTrails();
-  redrawTrace();
-}
-
-function resetView(){
-  state.zoom = 1; state.panX = 0; state.panY = 0;
-  clearTrails();
-  redrawTrace();
 }
 
 function renderLinks(){
@@ -1188,6 +1100,7 @@ function renderWells(){
       const i = +e.target.dataset.i;
       state.gravity.wells[i].mass = +e.target.value;
       e.target.parentElement.querySelector('.val-mass').textContent = e.target.value;
+      if(state.drawMode === 'gravedad'){ initGravityBodies(); resetTrace(); }
     });
   });
   list.querySelectorAll('.well-remove').forEach(el=>{
@@ -1196,6 +1109,7 @@ function renderWells(){
       if(state.gravity.wells.length<=1) return;
       state.gravity.wells.splice(i,1);
       renderWells();
+      if(state.drawMode === 'gravedad'){ initGravityBodies(); resetTrace(); }
     });
   });
 }
@@ -1206,6 +1120,7 @@ document.getElementById('btn-add-well').addEventListener('click', ()=>{
   const dist = 3 + Math.random()*3;
   state.gravity.wells.push({ mass: 30, x: Math.cos(ang)*dist, y: Math.sin(ang)*dist });
   renderWells();
+  if(state.drawMode === 'gravedad'){ initGravityBodies(); resetTrace(); }
 });
 
 document.getElementById('add-link').addEventListener('click', ()=>{
