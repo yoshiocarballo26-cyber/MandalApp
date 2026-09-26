@@ -809,6 +809,48 @@ function redrawTrace(){
   drawCosmicBackground();
   ctx.restore();
   ctx.drawImage(trailCanvas, 0, 0);
+  drawGravityBodies();
+}
+
+function drawGravityBodies(){
+  if(state.drawMode !== 'gravedad') return;
+  const s = scale * state.zoom;
+  ctx.save();
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  ctx.translate(W/2 + state.panX, H/2 + state.panY);
+  if(state.axisAuto.enabled) ctx.rotate(state.axisAuto.angle);
+
+  // Pozos de gravedad (soles), con resplandor
+  state.gravity.wells.forEach(w=>{
+    const r = Math.max(5, Math.sqrt(w.mass) * 1.3);
+    const glow = ctx.createRadialGradient(w.x*s, w.y*s, 0, w.x*s, w.y*s, r*3.2);
+    glow.addColorStop(0, 'rgba(255,215,106,0.9)');
+    glow.addColorStop(1, 'rgba(255,215,106,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(w.x*s, w.y*s, r*3.2, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffe9a8';
+    ctx.beginPath();
+    ctx.arc(w.x*s, w.y*s, r, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Planetas (cuerpos orbitando)
+  state.links.forEach(link=>{
+    if(link.gx === undefined || link.gy === undefined) return;
+    const r = (link.planetSize || 3) * 1.6;
+    ctx.fillStyle = link.traceColor;
+    ctx.beginPath();
+    ctx.arc(link.gx*s, link.gy*s, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+  });
+
+  ctx.restore();
 }
 
 function resetTrace(){
