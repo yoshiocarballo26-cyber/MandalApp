@@ -348,6 +348,27 @@
     .splash-menu-toggle,.splash-settings{width:40px;height:40px;font-size:20px;}
     #app{grid-template-rows:minmax(0,40dvh) minmax(0,60dvh);}
   }
+
+  /* ===== @2 — EDICIONES STANDARD / BETA ===== */
+  .edition-bar{display:flex;gap:6px;margin-top:12px;padding:4px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.02);}
+  .edition-btn{flex:1;border:0;background:transparent;color:var(--ink-dim);padding:8px 10px;border-radius:5px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
+  .edition-btn.active{background:rgba(0,240,214,.10);color:var(--cyan);box-shadow:inset 0 0 0 1px rgba(0,240,214,.25);}
+  .edition-btn.beta.active{background:rgba(217,180,92,.10);color:var(--gold);box-shadow:inset 0 0 0 1px rgba(217,180,92,.28);}
+  .edition-status{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:rgba(255,255,255,.018);font-size:10.5px;color:var(--ink-dim);}
+  .edition-status strong{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--ink);}
+  .edition-status.beta strong{color:var(--gold);}
+  .beta-lock{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--gold);border:1px solid rgba(217,180,92,.28);padding:3px 6px;border-radius:4px;}
+  .feature-beta{position:relative;}
+  .feature-beta .eyebrow::after{content:'BETA';font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--gold);border:1px solid rgba(217,180,92,.3);padding:2px 5px;border-radius:3px;margin-left:auto;}
+  .standard-only-note{font-size:10px;line-height:1.45;color:var(--ink-dim);margin:7px 0 0;}
+  #beta-access-modal .modal-box{border-color:rgba(217,180,92,.32);}
+  #beta-access-modal .modal-header h2{color:var(--gold);}
+  .edition-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .edition-card{border:1px solid var(--line);border-radius:8px;padding:14px;background:rgba(255,255,255,.015);text-align:left;}
+  .edition-card strong{display:block;font-size:14px;margin-bottom:5px;}
+  .edition-card p{margin:0;color:var(--ink-dim);font-size:11px;line-height:1.5;}
+  @media(max-width:480px){.edition-choice{grid-template-columns:1fr;}}
+
 </style>
 </head>
 <body>
@@ -366,6 +387,10 @@
       <h1 class="splash-headline">IMAGINACIÓN</h1>
       <div class="splash-touch">Toca la mandala.</div>
       <p class="splash-subline">Tu imaginación no tiene límites.</p>
+      <div class="edition-bar" id="splash-edition-bar" style="pointer-events:auto;max-width:360px;margin:14px auto 0;">
+        <button class="edition-btn active" data-edition="standard">Standard · Gratis</button>
+        <button class="edition-btn beta" data-edition="beta">Beta · Premium</button>
+      </div>
     </div>
 
     <button class="mandala-launch" id="btn-start-app" aria-label="Pon a prueba tu imaginación">
@@ -538,15 +563,34 @@
   </div>
 </div>
 
+<div id="beta-access-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>MANDALAPP BETA</h2>
+      <button class="modal-close" data-modal="beta-access-modal">✕</button>
+    </div>
+    <div class="legal-content">
+      <p><strong>Edición premium de @2.</strong> La Beta reunirá las herramientas avanzadas y experimentales antes de su incorporación a Standard.</p>
+      <div class="edition-choice">
+        <div class="edition-card"><strong>Standard</strong><p>Creación, simetría y exportación básica. Gratuita y pensada para el uso diario.</p></div>
+        <div class="edition-card"><strong>Beta</strong><p>Funciones avanzadas, experimentales y acceso anticipado. Requiere una suscripción o licencia.</p></div>
+      </div>
+      <p class="standard-only-note">La comprobación real del pago todavía no se activa aquí. Esta rama prepara la arquitectura visual y de funciones sin inventar un sistema de cobro.</p>
+      <button class="main-btn accent" id="btn-beta-continue" style="align-self:flex-start;">Continuar con Beta</button>
+    </div>
+  </div>
+</div>
+
 <div id="app">
 
   <div id="panel">
     <header>
       <h1>Mandal<em>App</em></h1>
       <p>Cadena pura de brazos circulares sobre un fondo estelar animado en tiempo real.</p>
+      <div class="edition-status" id="edition-status"><strong id="edition-label">STANDARD · GRATIS</strong><span id="edition-description">Edición estable</span></div>
     </header>
 
-    <div>
+    <div class="feature-beta">
       <span class="eyebrow">Patrón especial</span>
       <button class="main-btn accent" id="btn-master-pattern" style="width:100%;">✦ Patrón Maestro</button>
     </div>
@@ -575,7 +619,7 @@
       </div>
     </div>
 
-    <div>
+    <div class="feature-beta">
       <span class="eyebrow">Modo de trazo</span>
       <div class="presets">
         <button class="preset-btn active" id="mode-cadena" data-mode="cadena">⛓ Cadena</button>
@@ -595,7 +639,7 @@
       </div>
     </div>
 
-    <div>
+    <div class="feature-beta">
       <span class="eyebrow">
         <span>Brazos <span id="link-count">5 / 10</span></span>
         <button class="eyebrow-toggle" id="toggle-links-panel">▸ Mostrar</button>
@@ -1891,6 +1935,43 @@ function tick(){
   document.getElementById('r-zoom').textContent = Math.round(state.zoom*100)+'%';
   requestAnimationFrame(tick);
 }
+
+// ===== @2 — EDICIONES STANDARD / BETA =====
+const editionState = { current: 'standard' };
+const editionLabel = document.getElementById('edition-label');
+const editionDescription = document.getElementById('edition-description');
+const editionStatus = document.getElementById('edition-status');
+const betaModal = document.getElementById('beta-access-modal');
+const splashEditionButtons = document.querySelectorAll('#splash-edition-bar [data-edition]');
+
+function applyEdition(edition, openGate = false){
+  editionState.current = edition === 'beta' ? 'beta' : 'standard';
+  document.body.dataset.edition = editionState.current;
+  splashEditionButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.edition === editionState.current));
+  if(editionState.current === 'beta'){
+    editionLabel.textContent = 'BETA · PREMIUM';
+    editionDescription.textContent = 'Funciones avanzadas y experimentales';
+    editionStatus.classList.add('beta');
+  } else {
+    editionLabel.textContent = 'STANDARD · GRATIS';
+    editionDescription.textContent = 'Edición estable';
+    editionStatus.classList.remove('beta');
+  }
+  if(openGate && betaModal) betaModal.classList.add('active');
+}
+
+splashEditionButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const edition = btn.dataset.edition;
+    applyEdition(edition, edition === 'beta');
+  });
+});
+
+document.getElementById('btn-beta-continue')?.addEventListener('click', () => {
+  betaModal?.classList.remove('active');
+});
+
+applyEdition('standard');
 
 renderLinks();
 renderWells();
