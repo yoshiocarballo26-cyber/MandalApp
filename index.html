@@ -570,13 +570,13 @@
       <button class="modal-close" data-modal="beta-access-modal">✕</button>
     </div>
     <div class="legal-content">
-      <p><strong>Edición premium de @2.</strong> La Beta reunirá las herramientas avanzadas y experimentales antes de su incorporación a Standard.</p>
+      <p><strong>Acceso anticipado a @2.</strong> La Beta está en preparación. Todavía no hay un sistema de licencias ni pagos conectado, así que esta pantalla no concede acceso premium.</p>
       <div class="edition-choice">
         <div class="edition-card"><strong>Standard</strong><p>Creación, simetría y exportación básica. Gratuita y pensada para el uso diario.</p></div>
         <div class="edition-card"><strong>Beta</strong><p>Funciones avanzadas, experimentales y acceso anticipado. Requiere una suscripción o licencia.</p></div>
       </div>
-      <p class="standard-only-note">La comprobación real del pago todavía no se activa aquí. Esta rama prepara la arquitectura visual y de funciones sin inventar un sistema de cobro.</p>
-      <button class="main-btn accent" id="btn-beta-continue" style="align-self:flex-start;">Continuar con Beta</button>
+      <p class="standard-only-note" id="beta-availability-note" role="status">La Beta aún no está habilitada. Puedes seguir usando Standard gratis; ninguna función se desbloquea al cerrar este aviso.</p>
+      <button class="main-btn accent" id="btn-beta-continue" style="align-self:flex-start;">Entendido · seguir en Standard</button>
     </div>
   </div>
 </div>
@@ -619,7 +619,7 @@
       </div>
     </div>
 
-    <div class="feature-beta">
+    <div>
       <span class="eyebrow">Modo de trazo</span>
       <div class="presets">
         <button class="preset-btn active" id="mode-cadena" data-mode="cadena">⛓ Cadena</button>
@@ -639,7 +639,7 @@
       </div>
     </div>
 
-    <div class="feature-beta">
+    <div>
       <span class="eyebrow">
         <span>Brazos <span id="link-count">5 / 10</span></span>
         <button class="eyebrow-toggle" id="toggle-links-panel">▸ Mostrar</button>
@@ -1945,7 +1945,15 @@ const betaModal = document.getElementById('beta-access-modal');
 const splashEditionButtons = document.querySelectorAll('#splash-edition-bar [data-edition]');
 
 function applyEdition(edition, openGate = false){
-  editionState.current = edition === 'beta' ? 'beta' : 'standard';
+  // Beta es solo una selección informativa hasta integrar licencias verificables.
+  if(edition === 'beta'){
+    editionState.current = 'standard';
+    document.body.dataset.edition = 'standard';
+    splashEditionButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.edition === 'standard'));
+    if(betaModal) betaModal.classList.add('active');
+    return;
+  }
+  editionState.current = 'standard';
   document.body.dataset.edition = editionState.current;
   splashEditionButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.edition === editionState.current));
   if(editionState.current === 'beta'){
@@ -1961,15 +1969,25 @@ function applyEdition(edition, openGate = false){
 }
 
 splashEditionButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const edition = btn.dataset.edition;
-    applyEdition(edition, edition === 'beta');
-  });
+  btn.addEventListener('click', () => applyEdition(btn.dataset.edition));
 });
 
+// El botón premium nunca concede acceso ni cambia la edición activa.
 document.getElementById('btn-beta-continue')?.addEventListener('click', () => {
   betaModal?.classList.remove('active');
+  applyEdition('standard');
 });
+
+// Patrón Maestro queda marcado como función Beta y no se ejecuta en Standard.
+// La captura evita que se dispare antes su manejador original.
+document.addEventListener('click', event => {
+  const betaFeature = event.target.closest('#btn-master-pattern');
+  if(!betaFeature) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if(typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+  applyEdition('beta');
+}, true);
 
 applyEdition('standard');
 
