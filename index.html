@@ -1944,28 +1944,19 @@ const editionStatus = document.getElementById('edition-status');
 const betaModal = document.getElementById('beta-access-modal');
 const splashEditionButtons = document.querySelectorAll('#splash-edition-bar [data-edition]');
 
-function applyEdition(edition, openGate = false){
-  // Beta es solo una selección informativa hasta integrar licencias verificables.
+function applyEdition(edition){
+  // La selección Beta solo informa: no existe licencia verificable todavía.
   if(edition === 'beta'){
-    editionState.current = 'standard';
-    document.body.dataset.edition = 'standard';
     splashEditionButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.edition === 'standard'));
     if(betaModal) betaModal.classList.add('active');
     return;
   }
   editionState.current = 'standard';
-  document.body.dataset.edition = editionState.current;
-  splashEditionButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.edition === editionState.current));
-  if(editionState.current === 'beta'){
-    editionLabel.textContent = 'BETA · PREMIUM';
-    editionDescription.textContent = 'Funciones avanzadas y experimentales';
-    editionStatus.classList.add('beta');
-  } else {
-    editionLabel.textContent = 'STANDARD · GRATIS';
-    editionDescription.textContent = 'Edición estable';
-    editionStatus.classList.remove('beta');
-  }
-  if(openGate && betaModal) betaModal.classList.add('active');
+  document.body.dataset.edition = 'standard';
+  splashEditionButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.edition === 'standard'));
+  editionLabel.textContent = 'STANDARD · GRATIS';
+  editionDescription.textContent = 'Edición estable';
+  editionStatus.classList.remove('beta');
 }
 
 splashEditionButtons.forEach(btn => {
